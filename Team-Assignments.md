@@ -6,7 +6,7 @@
 
 ---
 
-### 🧑‍💻 Vibe Coder 1: Xác thực & Hồ sơ Cá nhân (Auth & User Profile)
+### 🧑‍💻 Thành: Xác thực & Hồ sơ Cá nhân (Auth & User Profile)
 **Nhiệm vụ:** Lo luồng xác thực người dùng và hiển thị thông tin cá nhân.
 *   **Backend:** 
     *   Bổ sung API lấy thông tin người dùng (`GET /api/users/profile`).
@@ -19,7 +19,7 @@
 
 ---
 
-### 🧑‍💻 Vibe Coder 2: Bảng tin & Bài viết (Posts & News Feed)
+### 🧑‍💻 Danh: Bảng tin & Bài viết (Posts & News Feed)
 **Nhiệm vụ:** Làm tính năng quan trọng nhất của MXH: Đăng bài và lướt Feed.
 *   **Backend:** 
     *   Tạo `PostsController`. 
@@ -33,7 +33,7 @@
 
 ---
 
-### 🧑‍💻 Vibe Coder 3: Tương tác Mạng Xã Hội (Likes & Comments)
+### 🧑‍💻 Huy: Tương tác Mạng Xã Hội (Likes & Comments)
 **Nhiệm vụ:** Làm cho mạng xã hội "sống động" thông qua bình luận và lượt thích.
 *   **Backend:** 
     *   Bổ sung bảng `Like` vào Database / Identity (nếu cần), tạo API thả tim (`POST /api/posts/{id}/like`).
@@ -46,7 +46,7 @@
 
 ---
 
-### 🧑‍💻 Vibe Coder 4: Kết nối & Real-time Info (Connections & SignalR)
+### 🧑‍💻 Đức: Kết nối & Real-time Info (Connections & SignalR)
 **Nhiệm vụ:** Xử lý hệ thống theo dõi (Follow) và độ "real-time" của MXH bằng WebSockets.
 *   **Backend:** 
     *   Tạo `ConnectionsController` để xử lý logic Follow/Unfollow user khác (`POST /api/connections/follow/{id}`).
