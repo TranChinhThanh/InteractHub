@@ -65,11 +65,7 @@ InteractHub is a modern, full-stack social media web application built with Reac
 Detailed API documentation and endpoint specifications can be explored interactively via Swagger UI once the backend server is running locally at the `/swagger` endpoint.
 
 ## 👥 Team Members
-* [Tên Thành viên 1] - Frontend Developer
-* [Tên Thành viên 2] - Backend Developer
-* [Tên Thành viên 3] - Database & API
-* [Tên Thành viên 4] - Testing & QA
-* [Tên Thành viên 5] - Cloud Deployment & DevOps
+
 
 ---
 *Note: This project strictly adheres to the academic integrity guidelines provided by the course instructors. All complex logic is properly commented, and third-party tools/libraries are cited appropriately.*
