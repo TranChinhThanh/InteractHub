@@ -42,15 +42,15 @@ const Login = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-surface font-body text-on-surface antialiased overflow-hidden">
+        <div className="flex flex-col h-screen bg-surface font-body text-on-surface antialiased overflow-hidden transition-opacity duration-300">
             {/* Main Content Area */}
             <main className="flex flex-col md:flex-row flex-1 w-full bg-white z-10 min-h-0 overflow-hidden">
                 {/* Left Side: Editorial Branding */}
-                <section className="hidden md:flex md:w-1/2 lg:w-3/5 relative overflow-hidden bg-primary-dim p-12 lg:p-20 flex-col justify-center border-r border-outline-variant/10">
+                <section className="hidden md:flex md:w-1/2 lg:w-3/5 relative overflow-hidden bg-primary-dim p-12 lg:p-20 flex-col justify-center border-r border-outline-variant/10 animate-fade-overlay">
                     {/* Background Texture */}
                     <div className="absolute inset-0 z-0">
-                        <img alt="Abstract fluid background" className="w-full h-full object-cover opacity-60 mix-blend-overlay" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAQKWkDmdcxAReTnmpehkc_82vOeGSVMxfz4-KpVYICMTFgYHs04glanOJ8-5V33dXpoECM98-2CIDI82PR6XwyM_ciLoazAUieF1Anvj93j1Oda-RlFryMuSt6nJOr8mivjTxTlsdCLbXoRvMpokzs97DXrQlktp-a_WD1J_Yulm7TaLauGqdWjvvYZPXFon4_0tUljGnosnUNQ_xOdJfcr3VvTBsLwtd9qTMEoGpYHEDLCegvfgAO2vbzWEf-5vMH4-hjW6nSypH" />
-                        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-secondary/70 to-transparent mix-blend-multiply"></div>
+                        <img alt="Abstract fluid background" className="w-full h-full object-cover opacity-60 mix-blend-overlay animate-color-shift" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCAQKWkDmdcxAReTnmpehkc_82vOeGSVMxfz4-KpVYICMTFgYHs04glanOJ8-5V33dXpoECM98-2CIDI82PR6XwyM_ciLoazAUieF1Anvj93j1Oda-RlFryMuSt6nJOr8mivjTxTlsdCLbXoRvMpokzs97DXrQlktp-a_WD1J_Yulm7TaLauGqdWjvvYZPXFon4_0tUljGnosnUNQ_xOdJfcr3VvTBsLwtd9qTMEoGpYHEDLCegvfgAO2vbzWEf-5vMH4-hjW6nSypH" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-secondary/70 to-transparent mix-blend-multiply transition-colors duration-1000"></div>
                     </div>
 
                     <div className="relative z-10 w-full max-w-xl mx-auto xl:mx-0 flex flex-col justify-center h-full">
@@ -84,7 +84,7 @@ const Login = () => {
                 </section>
 
                 {/* Right Side: Login Form */}
-                <section className="w-full md:w-1/2 lg:w-2/5 flex flex-col justify-center items-center py-6 px-8 md:px-12 lg:px-16 relative min-h-0 overflow-y-auto">
+                <section className="w-full md:w-1/2 lg:w-2/5 flex flex-col justify-center items-center py-6 px-8 md:px-12 lg:px-16 relative min-h-0 overflow-y-auto animate-slide-in-right">
                     <div className="w-full max-w-sm xl:max-w-md relative z-10 py-4">
                         {/* Mobile Branding */}
                         <div className="md:hidden mb-8 flex justify-center">
@@ -113,7 +113,7 @@ const Login = () => {
                                         </svg>
                                     </div>
                                     <input 
-                                        className="w-full bg-[#f4eeff] text-on-surface focus:bg-white placeholder-on-surface/30 py-3.5 pl-11 pr-4 rounded-xl border border-transparent focus:border-primary/20 focus:ring-4 focus:ring-primary/10 transition-all outline-none font-medium text-[15px]" 
+                                        className="w-full bg-[#f4eeff] text-on-surface focus:bg-white placeholder-on-surface/30 py-4 pl-11 pr-4 rounded-xl border border-transparent focus:border-primary/20 focus:ring-4 focus:ring-primary/10 transition-all outline-none font-medium text-[15px]" 
                                         id="username" 
                                         name="username" 
                                         placeholder="interact_user" 
@@ -139,7 +139,7 @@ const Login = () => {
                                     </div>
                                     <input 
                                         ref={passwordInputRef}
-                                        className="w-full bg-[#f4eeff] text-on-surface focus:bg-white placeholder-on-surface/30 py-3.5 pl-11 pr-12 rounded-xl border border-transparent focus:border-primary/20 focus:ring-4 focus:ring-primary/10 transition-all outline-none font-medium text-[15px]" 
+                                        className="w-full bg-[#f4eeff] text-on-surface focus:bg-white placeholder-on-surface/30 py-4 pl-11 pr-12 rounded-xl border border-transparent focus:border-primary/20 focus:ring-4 focus:ring-primary/10 transition-all outline-none font-medium text-[15px]" 
                                         id="password" 
                                         name="password" 
                                         placeholder="••••••••" 
@@ -177,7 +177,7 @@ const Login = () => {
 
                             <button 
                                 disabled={isLoading}
-                                className="w-full py-3.5 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-full shadow-[0_8px_24px_rgba(70,71,211,0.25)] hover:shadow-[0_12px_32px_rgba(70,71,211,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none" 
+                                className="w-full py-4 bg-gradient-to-r from-primary to-secondary text-white font-bold rounded-full shadow-[0_8px_24px_rgba(70,71,211,0.25)] hover:shadow-[0_12px_32px_rgba(70,71,211,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-300 disabled:opacity-70 disabled:hover:translate-y-0 disabled:hover:shadow-none" 
                                 type="submit"
                             >
                                 {isLoading ? 'Verifying...' : 'Log In'}
@@ -218,17 +218,17 @@ const Login = () => {
             </main>
 
             {/* Footer full width baseline */}
-            <footer className="w-full bg-[#f4eeff] py-5 z-0 lg:py-6">
-                <div className="w-full max-w-[1400px] mx-auto px-6 lg:px-10 flex flex-col md:flex-row justify-between items-center gap-3">
+            <footer className="w-full bg-[#f4eeff] py-3 lg:py-4 z-0">
+                <div className="w-full max-w-[1400px] mx-auto px-4 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-2">
                     <div className="flex flex-col items-center md:items-start text-center md:text-left">
-                        <span className="font-headline font-extrabold text-primary italic text-[14px]">InteractHub</span>
-                        <p className="font-body text-[11px] text-on-surface-variant/80 mt-1 font-medium">© 2026 InteractHub. The Kinetic Editorial.</p>
+                        <span className="font-headline font-extrabold text-primary italic text-[13px]">InteractHub</span>
+                        <p className="font-body text-[10px] text-on-surface-variant/80 mt-0.5 font-medium">© 2026 InteractHub. The Kinetic Editorial.</p>
                     </div>
-                    <div className="flex gap-5 md:gap-8 flex-wrap justify-center">
-                        <a className="font-body text-[12px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</a>
-                        <a className="font-body text-[12px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Terms</a>
-                        <a className="font-body text-[12px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Support</a>
-                        <a className="font-body text-[12px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Careers</a>
+                    <div className="flex gap-4 md:gap-6 flex-wrap justify-center">
+                        <a className="font-body text-[11px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</a>
+                        <a className="font-body text-[11px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Terms</a>
+                        <a className="font-body text-[11px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Support</a>
+                        <a className="font-body text-[11px] font-semibold text-on-surface-variant hover:text-primary transition-colors" href="#">Careers</a>
                     </div>
                 </div>
             </footer>
