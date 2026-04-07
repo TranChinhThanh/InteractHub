@@ -1,0 +1,13 @@
+namespace InteractHub.Api.Services.Interfaces;
+
+using InteractHub.Api.DTOs.Posts;
+
+public interface IPostService
+{
+    Task<PostResponseDto> CreateAsync(string userId, CreatePostDto request);
+    Task<PostResponseDto> CreateWithImageAsync(string userId, CreatePostWithImageDto request);
+    Task<PostResponseDto?> GetByIdAsync(int postId);
+    Task<PostListResponseDto> GetAllAsync(int pageNumber, int pageSize);
+    Task<PostResponseDto?> UpdateAsync(int postId, string userId, UpdatePostDto request);
+    Task<bool> DeleteAsync(int postId, string userId);
+}
