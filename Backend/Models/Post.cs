@@ -25,5 +25,6 @@ namespace InteractHub.Api.Models
         public ApplicationUser? User { get; set; }
 
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+        public ICollection<Hashtag> Hashtags { get; set; } = new List<Hashtag>();
     }
 }
