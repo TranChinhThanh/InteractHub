@@ -184,5 +184,38 @@
 ### Ghi chú phạm vi
 
 - [x] Mới xử lý upload ảnh cơ bản cho thao tác tạo post.
-- [x] Chưa xử lý upload video.
+- [x] Upload video **không nằm trong yêu cầu bắt buộc hiện tại của assignment** (scope chính là text + image).
 - [x] Chưa xử lý hashtag (để bước sau).
+
+---
+
+## Step 5 - Tích hợp Hashtag cho Posts (07/04/2026)
+
+### Việc đã thực thi
+
+- [x] Bổ sung dữ liệu hashtag vào response DTO của post (`PostResponseDto.Hashtags`).
+- [x] Mở rộng `PostService` để parse hashtag từ `Content` bằng regex, normalize về lowercase, loại trùng và gán vào quan hệ nhiều-nhiều `Post <-> Hashtag`.
+- [x] Áp dụng logic hashtag cho cả `CreateAsync`, `CreateWithImageAsync` và `UpdateAsync`.
+- [x] Bổ sung validate giới hạn tối đa 20 hashtag mỗi post.
+- [x] Cập nhật `PostsController` để trả `400 BadRequest` với message rõ ràng khi vi phạm rule hashtag.
+
+### Kết quả test thực tế
+
+- [x] `POST /api/posts` với nội dung chứa hashtag lặp (`#DotNet`, `#dotnet`) -> response đã de-duplicate và normalize (`#dotnet`).
+- [x] `PUT /api/posts/{id}` đổi nội dung hashtag -> response `GET/PUT` phản ánh hashtag mới chính xác.
+- [x] Gửi quá 20 hashtag -> `400 BadRequest` với message: `A post supports up to 20 hashtags.`
+
+### Ghi chú phạm vi
+
+- [x] Hoàn thành tích hợp hashtag cho module Posts theo scope Step 5.
+- [x] Không bắt buộc làm upload video theo requirement PDF hiện tại; giữ ở mức optional enhancement.
+
+---
+
+## Audit đối chiếu assignment.pdf -> plan (07/04/2026)
+
+### Kết luận rà soát
+
+- [x] Đã xác nhận requirement chính của Posts là post text + image, không có tiêu chí bắt buộc chấm điểm cho upload video.
+- [x] Đã cập nhật lại Master Plan để bỏ các mô tả khiến hiểu nhầm video là requirement bắt buộc.
+- [x] Ghi nhận các hạng mục còn thiếu theo rubric cần bổ sung trong roadmap: role/policy authorization, chuẩn response format, 6 controllers/20 endpoints, repository pattern, testing coverage, Azure CI/CD.

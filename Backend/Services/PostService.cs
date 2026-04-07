@@ -1,5 +1,6 @@
 namespace InteractHub.Api.Services;
 
+using System.Text.RegularExpressions;
 using InteractHub.Api.Data;
 using InteractHub.Api.DTOs.Posts;
 using InteractHub.Api.Models;
@@ -11,6 +12,8 @@ public sealed class PostService : IPostService
 {
     private const int MaxPageSize = 50;
     private const long MaxImageSizeBytes = 5 * 1024 * 1024;
+    private const int MaxHashtagCount = 20;
+    private static readonly Regex HashtagRegex = new(@"(?<!\w)#([A-Za-z0-9_]{1,100})", RegexOptions.Compiled);
     private static readonly HashSet<string> AllowedImageExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         ".jpg", ".jpeg", ".png", ".webp"
@@ -43,6 +46,7 @@ public sealed class PostService : IPostService
         };
 
         _dbContext.Posts.Add(post);
+        await ApplyHashtagsAsync(post, post.Content);
         await _dbContext.SaveChangesAsync();
 
         return ToPostResponse(post, user);
@@ -70,6 +74,7 @@ public sealed class PostService : IPostService
         };
 
         _dbContext.Posts.Add(post);
+        await ApplyHashtagsAsync(post, post.Content);
         await _dbContext.SaveChangesAsync();
 
         return ToPostResponse(post, user);
@@ -80,6 +85,7 @@ public sealed class PostService : IPostService
         var post = await _dbContext.Posts
             .AsNoTracking()
             .Include(p => p.User)
+            .Include(p => p.Hashtags)
             .FirstOrDefaultAsync(p => p.Id == postId);
 
         return post is null ? null : ToPostResponse(post, post.User);
@@ -93,6 +99,7 @@ public sealed class PostService : IPostService
         var query = _dbContext.Posts
             .AsNoTracking()
             .Include(p => p.User)
+            .Include(p => p.Hashtags)
             .OrderByDescending(p => p.CreatedAt)
             .AsQueryable();
 
@@ -115,6 +122,7 @@ public sealed class PostService : IPostService
     {
         var post = await _dbContext.Posts
             .Include(p => p.User)
+            .Include(p => p.Hashtags)
             .FirstOrDefaultAsync(p => p.Id == postId);
 
         if (post is null || !string.Equals(post.UserId, userId, StringComparison.Ordinal))
@@ -123,6 +131,7 @@ public sealed class PostService : IPostService
         }
 
         post.Content = request.Content.Trim();
+        await ApplyHashtagsAsync(post, post.Content);
         await _dbContext.SaveChangesAsync();
 
         return ToPostResponse(post, post.User);
@@ -151,6 +160,10 @@ public sealed class PostService : IPostService
             Content = post.Content,
             ImageUrl = post.ImageUrl,
             CreatedAt = post.CreatedAt,
+            Hashtags = post.Hashtags
+                .Select(h => $"#{h.Name}")
+                .OrderBy(name => name)
+                .ToList(),
             Author = new PostAuthorDto
             {
                 Id = post.UserId,
@@ -198,5 +211,56 @@ public sealed class PostService : IPostService
         await image.CopyToAsync(stream);
 
         return $"/uploads/posts/{fileName}";
+    }
+
+    private async Task ApplyHashtagsAsync(Post post, string content)
+    {
+        var hashtagNames = ExtractHashtagNames(content);
+        post.Hashtags.Clear();
+
+        if (hashtagNames.Count == 0)
+        {
+            return;
+        }
+
+        var existingHashtags = await _dbContext.Hashtags
+            .Where(h => hashtagNames.Contains(h.Name))
+            .ToListAsync();
+
+        var existingNames = existingHashtags
+            .Select(h => h.Name)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var newHashtags = hashtagNames
+            .Where(name => !existingNames.Contains(name))
+            .Select(name => new Hashtag { Name = name })
+            .ToList();
+
+        if (newHashtags.Count > 0)
+        {
+            _dbContext.Hashtags.AddRange(newHashtags);
+        }
+
+        foreach (var hashtag in existingHashtags.Concat(newHashtags))
+        {
+            post.Hashtags.Add(hashtag);
+        }
+    }
+
+    private static IReadOnlyList<string> ExtractHashtagNames(string content)
+    {
+        var names = HashtagRegex.Matches(content)
+            .Select(match => match.Groups[1].Value)
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(value => value.ToLowerInvariant())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        if (names.Count > MaxHashtagCount)
+        {
+            throw new ArgumentException($"A post supports up to {MaxHashtagCount} hashtags.");
+        }
+
+        return names;
     }
 }

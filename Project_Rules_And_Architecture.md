@@ -23,10 +23,13 @@
 
 ## 2. Quy Tắc Lập Trình Backend (Strict Backend Rules)
 
-- **Kiến trúc 3 lớp (3-layer Architecture):** Luôn tuân thủ luồng dữ liệu: `Controllers` -> `Services` -> `DbContext` (hoặc `Repositories`).
+- **Kiến trúc nhiều lớp (Assignment-aligned):** Tuân thủ luồng dữ liệu: `Controllers` -> `Services` -> `Repositories` -> `DbContext`.
 - **Data Transfer Objects (DTOs):** **BẮT BUỘC** sử dụng DTOs cho các request và response. KHÔNG bao giờ trả về trực tiếp Entity (Model) của cơ sở dữ liệu qua API.
 - **Không có Business Logic trong Controllers:** Controllers chỉ có nhiệm vụ nhận HTTP Request, gọi xử lý từ Services, và trả về HTTP Response (Ok, BadRequest, NotFound,...).
-- **Bảo mật (Security):** Phải triển khai JWT Authentication đầy đủ. Phân quyền và bảo vệ các API endpoint nhạy cảm bằng thuộc tính `[Authorize]`. Cấu hình CORS chặt chẽ.
+- **Bảo mật (Security):** Phải triển khai JWT Authentication đầy đủ. Phân quyền và bảo vệ các API endpoint nhạy cảm bằng thuộc tính `[Authorize]`, đồng thời hỗ trợ role-based và policy-based authorization theo assignment. Cấu hình CORS chặt chẽ.
+- **Chuẩn response API:** Ưu tiên chuẩn hóa response format thống nhất toàn hệ thống (ví dụ: `success`, `data`, `errors`) để dễ tích hợp frontend và test.
+- **Quy mô API tối thiểu theo đề:** Đảm bảo tối thiểu 6 API controllers và 20 endpoints JSON có DTO + validation.
+- **Services theo đề:** Tối thiểu 5 service classes có interface, DI đầy đủ, hỗ trợ unit-test.
 
 ---
 
@@ -53,3 +56,26 @@ Hiện tại, phase thiết kế cơ sở dữ liệu (Phase 1) đã hoàn tất
 - `PostReport`
 - `Story`
 - Có thực thể Join vô danh cho quan hệ n-n giữa `Post` và `Hashtag` (`PostHashtags` table).
+
+Yêu cầu kèm theo từ assignment cho phần DB:
+
+- Có ít nhất 3 migration files.
+- Có seed data phục vụ test.
+- Có database diagram trong tài liệu nộp bài.
+
+---
+
+## 5. Phạm Vi Assignment Cần Bám Sát
+
+- Scope bắt buộc cho Posts theo assignment hiện tại: **text + image + hashtag**.
+- Upload video cho Posts: **không phải yêu cầu bắt buộc chấm điểm**, chỉ xem như optional enhancement khi còn thời gian.
+
+---
+
+## 6. Checklist Bắt Buộc Khi Hoàn Thành Đồ Án
+
+- Frontend: đáp ứng đầy đủ F1-F4 (component architecture, state management, forms/validation, routing/protected routes + dynamic features).
+- Backend: đáp ứng đầy đủ B1-B4 (DB/EF, REST API + DTO, JWT authz/authn, services + repository).
+- Testing: có test project, ít nhất 15 unit tests, test cho >= 3 services, coverage services >= 60%.
+- Deployment: có Azure App Service + Azure SQL + Azure Blob Storage + CI/CD + monitoring.
+- Submission: đủ source, migration + seed/sql script, tài liệu, screenshots, test reports, deployment docs theo mục 4 của assignment.
