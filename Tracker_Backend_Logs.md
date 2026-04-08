@@ -560,3 +560,46 @@
 - [x] Case tự follow chính mình -> `400` + envelope lỗi `You cannot follow yourself.`.
 - [x] Case follow trùng -> `400` + envelope lỗi `Connection already exists.`.
 - [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
+
+---
+
+## Stories Module - Thin Slice 1 (Repository + DTO + Service + DI) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Repositories/Interfaces/IStoryRepository.cs` kế thừa `IGenericRepository<Story>`.
+- [x] Khai báo method chuyên biệt `Task<IEnumerable<Story>> GetActiveStoriesAsync();`.
+- [x] Tạo `Backend/Repositories/StoryRepository.cs` implement `IStoryRepository`.
+- [x] Cài đặt query active stories đúng rule `ExpiresAt > DateTime.UtcNow`, đồng thời dùng:
+  - `Include(s => s.User)` để eager loading user.
+  - `.AsNoTracking()` để tối ưu đọc.
+- [x] Tạo DTO trong `Backend/DTOs/Stories`:
+  - `CreateStoryDto` (`Content`, `ImageUrl`).
+  - `StoryResponseDto` (`Id`, `UserId`, `UserName`, `UserAvatarUrl`, `Content`, `ImageUrl`, `CreatedAt`, `ExpiresAt`).
+- [x] Tạo `Backend/Services/Interfaces/IStoriesService.cs` với 3 hàm:
+  - `CreateStoryAsync(string userId, CreateStoryDto dto)`
+  - `GetActiveStoriesAsync()`
+  - `DeleteStoryAsync(int storyId, string userId)`
+- [x] Tạo `Backend/Services/StoriesService.cs` implement `IStoriesService`.
+- [x] `StoriesService` inject `IStoryRepository` + `UserManager<ApplicationUser>`.
+- [x] Hoàn thiện logic create story:
+  - Set `CreatedAt = DateTime.UtcNow`.
+  - Set `ExpiresAt = DateTime.UtcNow.AddHours(24)`.
+- [x] Hoàn thiện logic delete story:
+  - Chỉ cho phép Admin hoặc đúng owner (`Story.UserId`) được xóa.
+  - Sai quyền -> throw `UnauthorizedAccessException`.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - `AddScoped<IStoryRepository, StoryRepository>()`
+  - `AddScoped<IStoriesService, StoriesService>()`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không tạo `StoriesController` ở bước này.
+- [x] Không thêm endpoint mới.
+- [x] Không thay đổi schema/entity/migration.
+
+### Kết quả xác minh
+
+- [x] Diagnostics các file Stories mới/sửa: không phát sinh lỗi.
+- [x] Build backend xác minh compile thành công với output tạm để tránh lock file:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_story1/`
