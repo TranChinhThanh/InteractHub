@@ -603,3 +603,52 @@
 - [x] Diagnostics các file Stories mới/sửa: không phát sinh lỗi.
 - [x] Build backend xác minh compile thành công với output tạm để tránh lock file:
   - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_story1/`
+
+---
+
+## Stories Module - Thin Slice 2 (StoriesController) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Controllers/StoriesController.cs` với:
+  - `[ApiController]`
+  - `[Route("api/stories")]`
+  - `[Authorize]`
+- [x] Inject `IStoriesService`.
+- [x] Tạo endpoint `POST /api/stories`:
+  - Nhận `CreateStoryDto` từ body.
+  - Lấy `userId` từ token bằng `User.FindFirstValue(ClaimTypes.NameIdentifier)`.
+  - Gọi `CreateStoryAsync(userId, dto)`.
+  - Trả `201 Created`.
+- [x] Tạo endpoint `GET /api/stories` gọi `GetActiveStoriesAsync()` và trả `200 OK`.
+- [x] Tạo endpoint `DELETE /api/stories/{id}`:
+  - Lấy `userId` từ token.
+  - Gọi `DeleteStoryAsync(id, userId)`.
+  - Trả `200 OK` + message xóa thành công.
+- [x] Chuẩn hóa response toàn bộ endpoint bằng `ApiResponse.Success(...)` / `ApiResponse.Failure(...)`.
+- [x] Áp dụng `try-catch` đúng mapping yêu cầu:
+  - `UnauthorizedAccessException` -> `403` + `ApiResponse.Failure("You do not have permission...")`
+  - `ArgumentException`, `InvalidOperationException` -> `400` + `ApiResponse.Failure(ex.Message)`
+  - `Exception` -> `500` + `ApiResponse.Failure("An error occurred while processing the request.")`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không thay đổi business logic trong `StoriesService`.
+- [x] Không thay đổi schema/entity/migration.
+- [x] Chỉ thêm `StoriesController` cho Thin Slice 2.
+
+### Kết quả xác minh
+
+- [x] Diagnostics: không có lỗi ở `StoriesController.cs`.
+- [x] Build backend thành công với output tạm:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_story2/`
+
+### Kết quả test runtime thực tế (self-test)
+
+- [x] Chạy API từ build output tạm tại `http://localhost:5051` để tránh lock file apphost mặc định.
+- [x] Đăng ký 2 user test và login thành công (`200`).
+- [x] `POST /api/stories` với token hợp lệ -> `201` + envelope success + trả đầy đủ story data.
+- [x] `GET /api/stories` -> `200` + trả danh sách active stories.
+- [x] `DELETE /api/stories/{id}` bằng user không phải owner -> `403` + envelope lỗi `You do not have permission...`.
+- [x] `DELETE /api/stories/{id}` bằng đúng owner -> `200` + envelope success (`Story deleted successfully.`).
+- [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
