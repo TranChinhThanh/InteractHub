@@ -1,6 +1,7 @@
 namespace InteractHub.Api.Controllers;
 
 using System.Security.Claims;
+using InteractHub.Api.DTOs.Common;
 using InteractHub.Api.DTOs.Posts;
 using InteractHub.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ public class PostsController : ControllerBase
     public async Task<ActionResult<PostListResponseDto>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
         var result = await _postService.GetAllAsync(pageNumber, pageSize);
-        return Ok(result);
+        return Ok(ApiResponse.Success(result));
     }
 
     [HttpGet("{postId:int}")]
@@ -30,10 +31,10 @@ public class PostsController : ControllerBase
         var result = await _postService.GetByIdAsync(postId);
         if (result is null)
         {
-            return NotFound(new { message = "Post not found." });
+            return NotFound(ApiResponse.Failure("Post not found."));
         }
 
-        return Ok(result);
+        return Ok(ApiResponse.Success(result));
     }
 
     [Authorize]
@@ -43,21 +44,21 @@ public class PostsController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return Unauthorized(new { message = "Invalid token." });
+            return Unauthorized(ApiResponse.Failure("Invalid token."));
         }
 
         try
         {
             var result = await _postService.CreateAsync(userId, request);
-            return CreatedAtAction(nameof(GetById), new { postId = result.Id }, result);
+            return CreatedAtAction(nameof(GetById), new { postId = result.Id }, ApiResponse.Success(result));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(ApiResponse.Failure(ex.Message));
         }
         catch (InvalidOperationException)
         {
-            return BadRequest(new { message = "Unable to create post for current user." });
+            return BadRequest(ApiResponse.Failure("Unable to create post for current user."));
         }
     }
 
@@ -69,21 +70,21 @@ public class PostsController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return Unauthorized(new { message = "Invalid token." });
+            return Unauthorized(ApiResponse.Failure("Invalid token."));
         }
 
         try
         {
             var result = await _postService.CreateWithImageAsync(userId, request);
-            return CreatedAtAction(nameof(GetById), new { postId = result.Id }, result);
+            return CreatedAtAction(nameof(GetById), new { postId = result.Id }, ApiResponse.Success(result));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(ApiResponse.Failure(ex.Message));
         }
         catch (InvalidOperationException)
         {
-            return BadRequest(new { message = "Unable to create post for current user." });
+            return BadRequest(ApiResponse.Failure("Unable to create post for current user."));
         }
     }
 
@@ -94,7 +95,7 @@ public class PostsController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return Unauthorized(new { message = "Invalid token." });
+            return Unauthorized(ApiResponse.Failure("Invalid token."));
         }
 
         try
@@ -102,14 +103,14 @@ public class PostsController : ControllerBase
             var result = await _postService.UpdateAsync(postId, userId, request);
             if (result is null)
             {
-                return NotFound(new { message = "Post not found or you do not have permission." });
+                return NotFound(ApiResponse.Failure("Post not found or you do not have permission."));
             }
 
-            return Ok(result);
+            return Ok(ApiResponse.Success(result));
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(new { message = ex.Message });
+            return BadRequest(ApiResponse.Failure(ex.Message));
         }
     }
 
@@ -120,15 +121,15 @@ public class PostsController : ControllerBase
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrWhiteSpace(userId))
         {
-            return Unauthorized(new { message = "Invalid token." });
+            return Unauthorized(ApiResponse.Failure("Invalid token."));
         }
 
         var deleted = await _postService.DeleteAsync(postId, userId);
         if (!deleted)
         {
-            return NotFound(new { message = "Post not found or you do not have permission." });
+            return NotFound(ApiResponse.Failure("Post not found or you do not have permission."));
         }
 
-        return NoContent();
+        return Ok(ApiResponse.Success(new { message = "Post deleted successfully." }));
     }
 }

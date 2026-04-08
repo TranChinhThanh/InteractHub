@@ -1,7 +1,10 @@
 using InteractHub.Api.DTOs.Auth;
+using InteractHub.Api.DTOs.Common;
+using InteractHub.Api.Security;
 using InteractHub.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace InteractHub.Api.Controllers
 {
@@ -22,10 +25,10 @@ namespace InteractHub.Api.Controllers
             var result = await _authService.RegisterAsync(request);
             if (!result.Succeeded)
             {
-                return BadRequest(new { message = result.Message });
+                return BadRequest(ApiResponse.Failure(result.Message));
             }
 
-            return Ok(new { message = result.Message });
+            return Ok(ApiResponse.Success(new { message = result.Message }));
         }
 
         [HttpPost("login")]
@@ -34,21 +37,42 @@ namespace InteractHub.Api.Controllers
             var response = await _authService.LoginAsync(request);
             if (response is null)
             {
-                return Unauthorized(new { message = "Invalid username or password." });
+                return Unauthorized(ApiResponse.Failure("Invalid username or password."));
             }
 
-            return Ok(response);
+            return Ok(ApiResponse.Success(response));
         }
 
         [Authorize]
         [HttpGet("/api/test/protected")]
         public IActionResult Protected()
         {
-            return Ok(new
+            return Ok(ApiResponse.Success(new
             {
                 message = "Authorized access success.",
                 username = User.Identity?.Name,
-            });
+                userId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                roles = User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray(),
+            }));
+        }
+
+        [Authorize(Roles = AppRoles.User)]
+        [HttpGet("/api/test/user-role")]
+        public IActionResult UserRoleOnly()
+        {
+            return Ok(ApiResponse.Success(new { message = "User role access success." }));
+        }
+
+        [Authorize(Policy = AppPolicies.SelfOrAdmin)]
+        [HttpGet("/api/test/self/{userId}")]
+        public IActionResult SelfOrAdmin(string userId)
+        {
+            return Ok(ApiResponse.Success(new
+            {
+                message = "Self/Admin policy access success.",
+                requestedUserId = userId,
+                tokenUserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+            }));
         }
     }
 }

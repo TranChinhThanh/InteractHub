@@ -2,6 +2,7 @@ namespace InteractHub.Api.Services;
 
 using InteractHub.Api.DTOs.Auth;
 using InteractHub.Api.Models;
+using InteractHub.Api.Security;
 using InteractHub.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 
@@ -42,6 +43,13 @@ public sealed class AuthService : IAuthService
         if (!result.Succeeded)
         {
             var firstError = result.Errors.FirstOrDefault()?.Description ?? "User creation failed.";
+            return (false, firstError);
+        }
+
+        var addRoleResult = await _userManager.AddToRoleAsync(user, AppRoles.User);
+        if (!addRoleResult.Succeeded)
+        {
+            var firstError = addRoleResult.Errors.FirstOrDefault()?.Description ?? "Assign default role failed.";
             return (false, firstError);
         }
 

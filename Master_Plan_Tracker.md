@@ -15,19 +15,19 @@
 
 - [x] Đã rà soát lại toàn bộ yêu cầu F1-F4, B1-B4, T1, D1 trực tiếp từ `assignment.pdf`.
 - [x] Điều chỉnh phạm vi Posts: **upload video không phải yêu cầu bắt buộc**; assignment yêu cầu post text + image.
-- [ ] Cần bổ sung các hạng mục còn thiếu theo rubric: role/policy authorization, chuẩn response format, đủ 6 controllers/20 endpoints, repository pattern, test coverage, CI/CD Azure chi tiết.
+- [ ] Cần bổ sung các hạng mục còn thiếu theo rubric: chuẩn response format cho toàn bộ controllers, đủ 6 controllers/20 endpoints, repository pattern, client-side caching, test coverage (đặc biệt AuthService), Swagger examples, CI/CD Azure chi tiết.
 
 ## Ma trận Requirement Chấm Điểm
 
 - [ ] **F1:** Component architecture + responsive design (mục tiêu >= 15 components).
-- [ ] **F2:** State management + API integration + interceptors + auth flow.
+- [ ] **F2:** State management + API integration + interceptors + auth flow + client-side caching.
 - [ ] **F3:** React Hook Form + validation + upload preview + UX states.
-- [ ] **F4:** Routing/protected routes + search debounce + pagination/infinite + lazy/skeleton + SignalR client.
+- [ ] **F4:** Routing/protected routes + search debounce + pagination/infinite + lazy/skeleton + SignalR client + client-side caching dữ liệu truy cập thường xuyên.
 - [/] **B1:** Database & EF (đã có entities/relationships/migrations cơ bản; còn đủ >= 3 migrations, seed data, database diagram).
-- [/] **B2:** RESTful API + DTO (đã có Auth/Posts; còn đủ bộ 6 controllers, >= 20 endpoints, standardized response format).
-- [/] **B3:** JWT auth/authz (đã có JWT + authorize cơ bản; còn role seeding + role/policy authorization).
-- [ ] **B4:** Services layer theo rubric (cần hoàn thiện >= 5 services + repository pattern + Azure Blob upload service).
-- [ ] **T1:** Unit/Integration testing theo ngưỡng rubric.
+- [/] **B2:** RESTful API + DTO (đã có Auth/Posts + standardized response format cho Auth/Posts và middleware 401/403; còn đủ bộ 6 controllers, >= 20 endpoints, mở rộng response format cho các controller mới, và Swagger examples request/response).
+- [x] **B3:** JWT auth/authz (đã có JWT + role seeding + role-based + policy-based authorization).
+- [/] **B4:** Services layer theo rubric (đã dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + DI; còn mở rộng cho các service khác để đạt >= 5 services và Azure Blob upload service).
+- [ ] **T1:** Unit/Integration testing theo ngưỡng rubric (bắt buộc test logic Authentication/Authorization của AuthService).
 - [ ] **D1:** Azure deployment + CI/CD + monitoring.
 
 ---
@@ -49,8 +49,8 @@
 - [x] Cấu hình ASP.NET Core Identity (Mật khẩu, Lockout, User rules) + JWT Authentication cơ bản.
 - [x] Tạo AuthController (Đăng nhập, Đăng ký, trả JWT).
 - [x] Cấu hình CORS để cho phép Frontend React gọi API.
-- [ ] Seed role `User`, `Admin` và hoàn thiện role-based authorization cho endpoint nghiệp vụ.
-- [ ] Bổ sung policy-based authorization (claims/policies) cho user-specific data.
+- [x] Seed role `User`, `Admin` và hoàn thiện role-based authorization cho endpoint nghiệp vụ.
+- [x] Bổ sung policy-based authorization (claims/policies) cho user-specific data.
 
 ---
 
@@ -66,9 +66,10 @@
 - [ ] **Users API:** Hồ sơ user, cập nhật profile, lấy thông tin user theo id/username.
 - [ ] Hoàn thiện đủ bộ controller bắt buộc theo đề: `AuthController`, `PostsController`, `UsersController`, `FriendsController`, `StoriesController`, `NotificationsController`.
 - [/] Triển khai DTOs cho toàn bộ endpoint + validation DataAnnotations (Posts đã có, các module khác chưa).
-- [ ] Chuẩn hóa API response format thống nhất (`success`, `data`, `errors`).
+- [/] Chuẩn hóa API response format thống nhất (`success`, `data`, `errors`) (đã áp dụng cho Auth + Posts + middleware 401/403, còn mở rộng toàn bộ controller).
+- [ ] Cấu hình Swagger nâng cao: bật XML Comments và thêm Example Requests/Responses cho các API chính (theo yêu cầu B2).
 - [ ] Đảm bảo tối thiểu **6 controllers** và **20 endpoints** theo requirement B2.
-- [ ] Bổ sung Repository pattern + tối thiểu 5 service classes (B4).
+- [/] Bổ sung Repository pattern + tối thiểu 5 service classes (B4) (đã có `IGenericRepository<T>` + `GenericRepository<T>` + `IPostRepository` + `PostRepository`, đã refactor `PostService` và đăng ký DI repository; còn áp dụng cho các service khác).
 - [ ] File upload service dùng Azure Blob Storage cho ảnh (B4/D1).
 - [ ] Tích hợp SignalR cho thông báo real-time.
 
@@ -81,6 +82,8 @@
 - [ ] Hoàn thiện kiến trúc component (mục tiêu >= 15 components), custom hooks và responsive navigation.
 - [ ] Thiết lập state management global (Context API hoặc Redux Toolkit).
 - [ ] Setup Axios Interceptors (Tự động thêm token Authorization).
+- [ ] Tích hợp React Query (hoặc SWR) để client-side caching dữ liệu truy cập thường xuyên.
+- [ ] (Optional nhưng khuyến khích) Xử lý Refresh Token mechanism trong Axios Interceptor khi gặp 401.
 - [ ] Setup Router (React Router DOM) cho nested routes + protected routes.
 - [ ] Tạo Layouts cơ sở (Navbar, Sidebar, Main Content, Footer) + lazy loading/skeleton.
 
@@ -94,12 +97,14 @@
 - [ ] Màn hình Profile cá nhân (Hiển thị info, chỉ số follow, danh sách bài viết).
 - [ ] Màn hình Notification.
 - [ ] Form validation đầy đủ (register/login/post/profile), preview upload ảnh, error/loading UX.
+- [ ] Áp dụng caching strategy (React Query/SWR) vào Home Feed, Profile, Notification để đáp ứng F4.
 
 ---
 
 ## Giai đoạn 6: Kiểm thử & Triển khai Cloud (Cloud Deployment)
 
 - [ ] Tạo test project (xUnit/NUnit) và viết >= 15 unit tests cho >= 3 service classes.
+- [ ] Viết Unit Test bắt buộc cho logic Authentication/Authorization (`AuthService`) theo yêu cầu T1.
 - [ ] Đạt >= 60% code coverage cho services + có test cases positive/negative.
 - [ ] Viết integration tests cho workflow quan trọng (Auth, Posts).
 - [ ] Triển khai Azure App Service + Azure SQL + Azure Blob Storage.
@@ -111,6 +116,7 @@
 ## Giai đoạn 7: Hồ Sơ Nộp Bài (Submission Package)
 
 - [ ] Hoàn thiện README (overview, setup/install, endpoint list/API docs).
+- [ ] Tạo tài liệu "Component hierarchy documentation (tree structure)" nộp kèm (theo F1).
 - [ ] Chuẩn bị SQL script tạo DB + migration files + seed script.
 - [ ] Bổ sung screenshots tính năng chính (>= 10).
 - [ ] Tổng hợp test execution results + coverage report vào tài liệu.
@@ -122,8 +128,8 @@
 ## Thanh tiến độ chi tiết hiện tại
 
 - [/] Giai đoạn 1: Thiết Kế CSDL & EF Core: 80% (đã xong entities/relationships/migrations nền tảng; còn yêu cầu >= 3 migrations, seed data, database diagram).
-- [/] Giai đoạn 2: Backend Core & Security: 75% (đã xong Identity/JWT/CORS/Auth cơ bản; còn role seeding + role/policy authorization theo rubric).
-- [/] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 35% (đã hoàn thành Posts Step 1-5; còn Users/Friends/Stories/Notifications/... + chuẩn response format + chỉ tiêu 6 controllers/20 endpoints).
+- [x] Giai đoạn 2: Backend Core & Security: 100% (đã hoàn thiện Identity/JWT/CORS/Auth + role seeding + role/policy authorization theo rubric B3).
+- [/] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 44% (đã hoàn thành Posts Step 1-5 + chuẩn response format cho Auth/Posts + dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository; còn Users/Friends/Stories/Notifications/... + 6 controllers/20 endpoints + mở rộng format toàn bộ).
 - [/] Giai đoạn 4: Frontend Setup: 30% (đã có Vite + React + TS + Tailwind; còn state management, kiến trúc component/hook, protected routes, lazy/skeleton).
 - [ ] Giai đoạn 5: Frontend Integration: 0%.
 - [ ] Giai đoạn 6: Test & Cloud Deployment: 0%.

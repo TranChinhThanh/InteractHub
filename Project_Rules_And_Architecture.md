@@ -37,7 +37,7 @@
 
 - **Typescript Strict Mode:** Đảm bảo code type-safe, không dùng `any` bừa bãi.
 - **Cấu trúc Component:** Khuyến khích chia nhỏ components có thể tái sử dụng.
-- **Xử lý gọi API:** Tập trung các lệnh gọi API tại thư mục `services/` (ví dụ: `api.ts`), cấu hình sẵn Axios interceptors để tự động gắn Bearer Token vào header với mỗi request và xử lý logic khi token hết hạn (refresh token/logout).
+- **Xử lý gọi API & Caching:** Sử dụng Axios kết hợp với thư viện caching như React Query (hoặc SWR) để gọi API và cache dữ liệu client-side. Cấu hình Axios interceptors để tự động gắn Bearer Token và xử lý Refresh Token khi gặp `401`.
 - **Quản lý Form & Validation:** Sử dụng React Hook Form kết hợp với thư viện validation (như Yup hoặc Zod) để kiểm tra tính hợp lệ của dữ liệu trước khi submit.
 
 ---

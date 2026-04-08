@@ -5,9 +5,15 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using InteractHub.Api.DTOs.Common;
+using InteractHub.Api.Repositories;
+using InteractHub.Api.Repositories.Interfaces;
 using InteractHub.Api.Services;
 using InteractHub.Api.Services.Interfaces;
+using InteractHub.Api.Security;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(new WebApplicationOptions
 {
@@ -46,6 +52,8 @@ builder.Services.AddIdentityCore<ApplicationUser>(options =>
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+builder.Services.AddScoped<IPostRepository, PostRepository>();
 
 // Add CORS for React Frontend
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
@@ -74,6 +82,33 @@ builder.Services.AddAuthentication(options =>
 {
     options.SaveToken = true;
     options.RequireHttpsMetadata = false;
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = async context =>
+        {
+            context.HandleResponse();
+            if (context.Response.HasStarted)
+            {
+                return;
+            }
+
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(ApiResponse.Failure("Authentication required."));
+        },
+        OnForbidden = async context =>
+        {
+            if (context.Response.HasStarted)
+            {
+                return;
+            }
+
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(ApiResponse.Failure("You do not have permission to access this resource."));
+        }
+    };
+
     options.TokenValidationParameters = new TokenValidationParameters()
     {
         ValidateIssuerSigningKey = true,
@@ -87,9 +122,46 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(AppPolicies.SelfOrAdmin, policy =>
+        policy.RequireAssertion(context =>
+        {
+            if (context.User.IsInRole(AppRoles.Admin))
+            {
+                return true;
+            }
+
+            var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return false;
+            }
+
+            if (context.Resource is HttpContext httpContext)
+            {
+                var routeUserId = httpContext.Request.RouteValues["userId"]?.ToString();
+                return string.Equals(routeUserId, userId, StringComparison.Ordinal);
+            }
+
+            return false;
+        }));
+});
 
 builder.Services.AddControllers();
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState
+            .Values
+            .SelectMany(value => value.Errors)
+            .Select(error => string.IsNullOrWhiteSpace(error.ErrorMessage) ? "Invalid request." : error.ErrorMessage)
+            .ToList();
+
+        return new BadRequestObjectResult(ApiResponse.Failure(errors));
+    };
+});
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -117,6 +189,8 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
+await SeedRolesAsync(app.Services);
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -135,3 +209,25 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+static async Task SeedRolesAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+    foreach (var roleName in AppRoles.All)
+    {
+        var exists = await roleManager.RoleExistsAsync(roleName);
+        if (exists)
+        {
+            continue;
+        }
+
+        var result = await roleManager.CreateAsync(new IdentityRole(roleName));
+        if (!result.Succeeded)
+        {
+            var error = result.Errors.FirstOrDefault()?.Description ?? "Unknown role creation error.";
+            throw new InvalidOperationException($"Failed to seed role '{roleName}': {error}");
+        }
+    }
+}

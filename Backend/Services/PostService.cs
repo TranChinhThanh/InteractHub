@@ -1,9 +1,9 @@
 namespace InteractHub.Api.Services;
 
 using System.Text.RegularExpressions;
-using InteractHub.Api.Data;
 using InteractHub.Api.DTOs.Posts;
 using InteractHub.Api.Models;
+using InteractHub.Api.Repositories.Interfaces;
 using InteractHub.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -19,50 +19,40 @@ public sealed class PostService : IPostService
         ".jpg", ".jpeg", ".png", ".webp"
     };
 
-    private readonly ApplicationDbContext _dbContext;
+    private readonly IPostRepository _postRepository;
+    private readonly IGenericRepository<Hashtag> _hashtagRepository;
     private readonly IWebHostEnvironment _environment;
 
-    public PostService(ApplicationDbContext dbContext, IWebHostEnvironment environment)
+    public PostService(
+        IPostRepository postRepository,
+        IGenericRepository<Hashtag> hashtagRepository,
+        IWebHostEnvironment environment)
     {
-        _dbContext = dbContext;
+        _postRepository = postRepository;
+        _hashtagRepository = hashtagRepository;
         _environment = environment;
     }
 
     public async Task<PostResponseDto> CreateAsync(string userId, CreatePostDto request)
     {
-        var user = await _dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user is null)
-        {
-            throw new InvalidOperationException("User not found.");
-        }
-
         var post = new Post
         {
             Content = request.Content.Trim(),
             UserId = userId,
         };
 
-        _dbContext.Posts.Add(post);
+        await _postRepository.AddAsync(post);
         await ApplyHashtagsAsync(post, post.Content);
-        await _dbContext.SaveChangesAsync();
+        await SavePostChangesWithUserValidationAsync();
 
-        return ToPostResponse(post, user);
+        var createdPost = await _postRepository.GetPostWithDetailsByIdAsync(post.Id)
+            ?? throw new InvalidOperationException("Unable to load created post.");
+
+        return ToPostResponse(createdPost, createdPost.User);
     }
 
     public async Task<PostResponseDto> CreateWithImageAsync(string userId, CreatePostWithImageDto request)
     {
-        var user = await _dbContext.Users
-            .AsNoTracking()
-            .FirstOrDefaultAsync(u => u.Id == userId);
-
-        if (user is null)
-        {
-            throw new InvalidOperationException("User not found.");
-        }
-
         ValidateImage(request.Image);
         var imageUrl = await SaveImageAsync(request.Image);
 
@@ -73,20 +63,19 @@ public sealed class PostService : IPostService
             ImageUrl = imageUrl,
         };
 
-        _dbContext.Posts.Add(post);
+        await _postRepository.AddAsync(post);
         await ApplyHashtagsAsync(post, post.Content);
-        await _dbContext.SaveChangesAsync();
+        await SavePostChangesWithUserValidationAsync();
 
-        return ToPostResponse(post, user);
+        var createdPost = await _postRepository.GetPostWithDetailsByIdAsync(post.Id)
+            ?? throw new InvalidOperationException("Unable to load created post.");
+
+        return ToPostResponse(createdPost, createdPost.User);
     }
 
     public async Task<PostResponseDto?> GetByIdAsync(int postId)
     {
-        var post = await _dbContext.Posts
-            .AsNoTracking()
-            .Include(p => p.User)
-            .Include(p => p.Hashtags)
-            .FirstOrDefaultAsync(p => p.Id == postId);
+        var post = await _postRepository.GetPostWithDetailsByIdAsync(postId);
 
         return post is null ? null : ToPostResponse(post, post.User);
     }
@@ -96,18 +85,13 @@ public sealed class PostService : IPostService
         var safePageNumber = pageNumber < 1 ? 1 : pageNumber;
         var safePageSize = pageSize < 1 ? 10 : Math.Min(pageSize, MaxPageSize);
 
-        var query = _dbContext.Posts
-            .AsNoTracking()
-            .Include(p => p.User)
-            .Include(p => p.Hashtags)
-            .OrderByDescending(p => p.CreatedAt)
-            .AsQueryable();
+        var allPosts = (await _postRepository.GetAllPostsWithDetailsAsync()).ToList();
 
-        var totalCount = await query.CountAsync();
-        var items = await query
+        var totalCount = allPosts.Count;
+        var items = allPosts
             .Skip((safePageNumber - 1) * safePageSize)
             .Take(safePageSize)
-            .ToListAsync();
+            .ToList();
 
         return new PostListResponseDto
         {
@@ -120,10 +104,7 @@ public sealed class PostService : IPostService
 
     public async Task<PostResponseDto?> UpdateAsync(int postId, string userId, UpdatePostDto request)
     {
-        var post = await _dbContext.Posts
-            .Include(p => p.User)
-            .Include(p => p.Hashtags)
-            .FirstOrDefaultAsync(p => p.Id == postId);
+        var post = await _postRepository.GetPostWithDetailsByIdAsync(postId);
 
         if (post is null || !string.Equals(post.UserId, userId, StringComparison.Ordinal))
         {
@@ -132,23 +113,23 @@ public sealed class PostService : IPostService
 
         post.Content = request.Content.Trim();
         await ApplyHashtagsAsync(post, post.Content);
-        await _dbContext.SaveChangesAsync();
+        _postRepository.Update(post);
+        await _postRepository.SaveChangesAsync();
 
         return ToPostResponse(post, post.User);
     }
 
     public async Task<bool> DeleteAsync(int postId, string userId)
     {
-        var post = await _dbContext.Posts
-            .FirstOrDefaultAsync(p => p.Id == postId);
+        var post = await _postRepository.GetByIdAsync(postId);
 
         if (post is null || !string.Equals(post.UserId, userId, StringComparison.Ordinal))
         {
             return false;
         }
 
-        _dbContext.Posts.Remove(post);
-        await _dbContext.SaveChangesAsync();
+        _postRepository.Delete(post);
+        await _postRepository.SaveChangesAsync();
         return true;
     }
 
@@ -223,9 +204,11 @@ public sealed class PostService : IPostService
             return;
         }
 
-        var existingHashtags = await _dbContext.Hashtags
-            .Where(h => hashtagNames.Contains(h.Name))
-            .ToListAsync();
+        var hashtagNameSet = hashtagNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var existingHashtags = (await _hashtagRepository.GetAllAsync())
+            .Where(h => hashtagNameSet.Contains(h.Name))
+            .ToList();
 
         var existingNames = existingHashtags
             .Select(h => h.Name)
@@ -236,14 +219,26 @@ public sealed class PostService : IPostService
             .Select(name => new Hashtag { Name = name })
             .ToList();
 
-        if (newHashtags.Count > 0)
+        foreach (var hashtag in newHashtags)
         {
-            _dbContext.Hashtags.AddRange(newHashtags);
+            await _hashtagRepository.AddAsync(hashtag);
         }
 
         foreach (var hashtag in existingHashtags.Concat(newHashtags))
         {
             post.Hashtags.Add(hashtag);
+        }
+    }
+
+    private async Task SavePostChangesWithUserValidationAsync()
+    {
+        try
+        {
+            await _postRepository.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            throw new InvalidOperationException("Unable to create post for current user.");
         }
     }
 
