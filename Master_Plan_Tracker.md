@@ -24,9 +24,9 @@
 - [ ] **F3:** React Hook Form + validation + upload preview + UX states.
 - [ ] **F4:** Routing/protected routes + search debounce + pagination/infinite + lazy/skeleton + SignalR client + client-side caching dữ liệu truy cập thường xuyên.
 - [/] **B1:** Database & EF (đã có entities/relationships/migrations cơ bản; còn đủ >= 3 migrations, seed data, database diagram).
-- [/] **B2:** RESTful API + DTO (đã có Auth/Posts/Users/Friends/Stories/Notifications + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller) + standardized response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes và middleware 401/403; đã vượt mốc endpoint tối thiểu với 26 endpoints qua Swagger, còn mở rộng response format cho các controller mới và Swagger examples request/response).
+- [x] **B2:** RESTful API + DTO (đã có Auth/Posts/Users/Friends/Stories/Notifications + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller) + Reports Thin Slice 1-2 (repository + DTO + service + DI + controller `POST /api/reports/post/{postId:int}`), chuẩn hóa response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes/Reports + middleware 401/403; đã vượt mốc endpoint tối thiểu với 27 endpoints qua Swagger runtime check).
 - [x] **B3:** JWT auth/authz (đã có JWT + role seeding + role-based + policy-based authorization).
-- [/] **B4:** Services layer theo rubric (đã dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + DI + thêm `UsersService` (UserManager-based) + `FriendsService` (ConnectionRepository-based) + `StoriesService` (StoryRepository-based) + `NotificationsService` (NotificationRepository-based) + `CommentsService` (CommentRepository-based) + `LikesService` (LikeRepository-based); đã vượt mốc >= 5 service classes, còn hạng mục Azure Blob upload service).
+- [/] **B4:** Services layer theo rubric (đã dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + DI + thêm `UsersService` (UserManager-based) + `FriendsService` (ConnectionRepository-based) + `StoriesService` (StoryRepository-based) + `NotificationsService` (NotificationRepository-based) + `CommentsService` (CommentRepository-based) + `LikesService` (LikeRepository-based) + `ReportsService` (ReportRepository-based); đã vượt mốc >= 5 service classes, hạng mục Azure Blob upload service được dời sang Giai đoạn 6 theo quyết định phạm vi).
 - [ ] **T1:** Unit/Integration testing theo ngưỡng rubric (bắt buộc test logic Authentication/Authorization của AuthService).
 - [ ] **D1:** Azure deployment + CI/CD + monitoring.
 
@@ -56,22 +56,19 @@
 
 ## Giai đoạn 3: Phát triển RESTful APIs (RESTful APIs Development)
 
-- [/] **Posts API:** CRUD bài viết, upload ảnh, tích hợp hashtag (đã xong Step 1-5: CRUD text + upload ảnh + hashtag).
+- [x] **Posts API:** CRUD bài viết, upload ảnh, tích hợp hashtag (đã xong Step 1-5: CRUD text + upload ảnh + hashtag).
 - [x] **Comments API:** Thêm/sửa/xóa bình luận trên bài viết (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `CommentsController` với `POST post/{postId}`, `GET post/{postId}` (allow anonymous), `DELETE {id}`).
 - [x] **Likes API:** Xử lý logic Like/Unlike bài viết và bình luận (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `LikesController` với `POST post/{postId}` và `POST comment/{commentId}`).
-- [/] **Friends/Connections API:** Xử lý logic follow/friend request, danh sách friends/followers/following (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `FriendsController` với `POST follow`, `GET followers`, `GET following`; còn mở rộng theo roadmap nếu cần).
-- [/] **Stories API:** CRUD story (Tự động hết hạn sau 24h) (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `StoriesController` với `POST`, `GET active`, `DELETE`; còn mở rộng theo roadmap nếu cần).
+- [x] **Friends/Connections API:** Xử lý logic follow/friend request, danh sách friends/followers/following (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `FriendsController` với `POST follow`, `GET followers`, `GET following`; phạm vi assignment hiện tại đã hoàn tất).
+- [x] **Stories API:** CRUD story (Tự động hết hạn sau 24h) (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `StoriesController` với `POST`, `GET active`, `DELETE`; phạm vi assignment hiện tại đã hoàn tất).
 - [x] **Notifications API:** Lấy danh sách thông báo, đánh dấu đã đọc (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `NotificationsController` với `GET list` và `PUT read`).
-- [ ] **Reports API:** Tạo report cho bài viết.
-- [/] **Users API:** Hồ sơ user, cập nhật profile, lấy thông tin user theo id/username (đã có Thin Slice 1 + Thin Slice 2: `UsersController` với `GET /api/users/{id}` và `PUT /api/users/{id}` + policy `SelfOrAdmin`; còn mở rộng endpoint theo roadmap).
+- [x] **Reports API:** Tạo report cho bài viết (đã xong Thin Slice 1 + Thin Slice 2: repository + DTO + service + DI + `ReportsController` với `POST /api/reports/post/{postId:int}`).
+- [x] **Users API:** Hồ sơ user, cập nhật profile, lấy thông tin user theo id/username (đã có Thin Slice 1 + Thin Slice 2: `UsersController` với `GET /api/users/{id}` và `PUT /api/users/{id}` + policy `SelfOrAdmin`; phạm vi assignment hiện tại đã hoàn tất).
 - [x] Hoàn thiện đủ bộ controller bắt buộc theo đề: `AuthController`, `PostsController`, `UsersController`, `FriendsController`, `StoriesController`, `NotificationsController` (đã có đủ 6/6; hiện tại đã mở rộng thêm `CommentsController`, `LikesController`).
-- [/] Triển khai DTOs cho toàn bộ endpoint + validation DataAnnotations (đã có Posts + Users Thin Slice 1 + Friends Thin Slice 1 + Stories Thin Slice 1 + Notifications Thin Slice 1 + Comments Thin Slice 1 + Likes Thin Slice 1, các module khác chưa).
-- [/] Chuẩn hóa API response format thống nhất (`success`, `data`, `errors`) (đã áp dụng cho Auth + Posts + Users + Friends + Stories + Notifications + Comments + Likes + middleware 401/403, còn mở rộng toàn bộ controller).
-- [ ] Cấu hình Swagger nâng cao: bật XML Comments và thêm Example Requests/Responses cho các API chính (theo yêu cầu B2).
-- [x] Đảm bảo tối thiểu **6 controllers** và **20 endpoints** theo requirement B2 (đã có >= 8 controllers và 26 endpoints theo Swagger runtime check).
-- [/] Bổ sung Repository pattern + tối thiểu 5 service classes (B4) (đã có `IGenericRepository<T>` + `GenericRepository<T>` + `IPostRepository` + `PostRepository` + `IConnectionRepository` + `ConnectionRepository` + `IStoryRepository` + `StoryRepository` + `INotificationRepository` + `NotificationRepository` + `ICommentRepository` + `CommentRepository` + `ILikeRepository` + `LikeRepository`, đã refactor `PostService`, thêm `UsersService` + `FriendsService` + `StoriesService` + `NotificationsService` + `CommentsService` + `LikesService` và đăng ký DI; hiện có 8 service classes chính `AuthService`, `PostService`, `UsersService`, `FriendsService`, `StoriesService`, `NotificationsService`, `CommentsService`, `LikesService`, còn mở rộng theo các module còn lại).
-- [ ] File upload service dùng Azure Blob Storage cho ảnh (B4/D1).
-- [ ] Tích hợp SignalR cho thông báo real-time.
+- [x] Triển khai DTOs cho toàn bộ endpoint + validation DataAnnotations (đã có Posts + Users + Friends + Stories + Notifications + Comments + Likes + Reports và các DTO response/request tương ứng).
+- [x] Chuẩn hóa API response format thống nhất (`success`, `data`, `errors`) (đã áp dụng cho Auth + Posts + Users + Friends + Stories + Notifications + Comments + Likes + Reports + middleware 401/403).
+- [x] Đảm bảo tối thiểu **6 controllers** và **20 endpoints** theo requirement B2 (đã có >= 9 controllers và 27 endpoints theo Swagger runtime check).
+- [x] Bổ sung Repository pattern + tối thiểu 5 service classes (B4) (đã có `IGenericRepository<T>` + `GenericRepository<T>` + `IPostRepository` + `PostRepository` + `IConnectionRepository` + `ConnectionRepository` + `IStoryRepository` + `StoryRepository` + `INotificationRepository` + `NotificationRepository` + `ICommentRepository` + `CommentRepository` + `ILikeRepository` + `LikeRepository` + `IReportRepository` + `ReportRepository`, đã refactor `PostService`, thêm `UsersService` + `FriendsService` + `StoriesService` + `NotificationsService` + `CommentsService` + `LikesService` + `ReportsService` và đăng ký DI; hiện có 9 service classes chính `AuthService`, `PostService`, `UsersService`, `FriendsService`, `StoriesService`, `NotificationsService`, `CommentsService`, `LikesService`, `ReportsService`).
 
 ---
 
@@ -108,6 +105,8 @@
 - [ ] Đạt >= 60% code coverage cho services + có test cases positive/negative.
 - [ ] Viết integration tests cho workflow quan trọng (Auth, Posts).
 - [ ] Triển khai Azure App Service + Azure SQL + Azure Blob Storage.
+- [ ] Hoàn thiện File upload service dùng Azure Blob Storage cho ảnh (B4/D1).
+- [ ] Tích hợp SignalR cho thông báo real-time.
 - [ ] Thiết lập CI/CD (GitHub Actions hoặc Azure DevOps) chạy build/test/deploy tự động.
 - [ ] Cấu hình monitoring/logging (Application Insights) + tài liệu deployment.
 
@@ -116,6 +115,7 @@
 ## Giai đoạn 7: Hồ Sơ Nộp Bài (Submission Package)
 
 - [ ] Hoàn thiện README (overview, setup/install, endpoint list/API docs).
+- [ ] Cấu hình Swagger nâng cao: bật XML Comments và thêm Example Requests/Responses cho các API chính (chuyển sang package tài liệu nộp).
 - [ ] Tạo tài liệu "Component hierarchy documentation (tree structure)" nộp kèm (theo F1).
 - [ ] Chuẩn bị SQL script tạo DB + migration files + seed script.
 - [ ] Bổ sung screenshots tính năng chính (>= 10).
@@ -129,7 +129,7 @@
 
 - [/] Giai đoạn 1: Thiết Kế CSDL & EF Core: 80% (đã xong entities/relationships/migrations nền tảng; còn yêu cầu >= 3 migrations, seed data, database diagram).
 - [x] Giai đoạn 2: Backend Core & Security: 100% (đã hoàn thiện Identity/JWT/CORS/Auth + role seeding + role/policy authorization theo rubric B3).
-- [/] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 94% (đã hoàn thành Posts Step 1-5 + chuẩn response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes + dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + Users Thin Slice 1-2 + Friends Thin Slice 1-2 (repository + DTO + service + DI + controller) + Stories Thin Slice 1-2 (repository + DTO + service + DI + controller) + Notifications Thin Slice 1-2 (repository + DTO + service + DI + controller) + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller); đã đạt mốc >= 20 endpoint (26 qua Swagger), còn hoàn thiện format toàn bộ và các module còn lại).
+- [x] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 100% (đã hoàn thành Posts Step 1-5 + chuẩn response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes/Reports + dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + Users Thin Slice 1-2 + Friends Thin Slice 1-2 (repository + DTO + service + DI + controller) + Stories Thin Slice 1-2 (repository + DTO + service + DI + controller) + Notifications Thin Slice 1-2 (repository + DTO + service + DI + controller) + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller) + Reports Thin Slice 1-2 (repository + DTO + service + DI + controller); đã đạt mốc >= 20 endpoint (27 qua Swagger). Các hạng mục SignalR/Azure Blob được chuyển sang Giai đoạn 6 theo quyết định phạm vi).
 - [/] Giai đoạn 4: Frontend Setup: 30% (đã có Vite + React + TS + Tailwind; còn state management, kiến trúc component/hook, protected routes, lazy/skeleton).
 - [ ] Giai đoạn 5: Frontend Integration: 0%.
 - [ ] Giai đoạn 6: Test & Cloud Deployment: 0%.

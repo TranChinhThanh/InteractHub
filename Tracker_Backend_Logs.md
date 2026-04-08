@@ -946,3 +946,95 @@
 - [x] `POST /api/likes/comment/99999999` -> `400` + lỗi `Comment not found.`.
 - [x] Check Swagger runtime operation count -> `26 endpoints`.
 - [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
+
+---
+
+## Reports Module - Thin Slice 1 (Repository + DTO + Service + DI) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Repositories/Interfaces/IReportRepository.cs` kế thừa `IGenericRepository<PostReport>`.
+- [x] Tạo `Backend/Repositories/ReportRepository.cs` implement `IReportRepository` (dùng các hàm có sẵn từ `GenericRepository`).
+- [x] Tạo DTOs trong `Backend/DTOs/Reports` theo schema thật của `PostReport` (`Reason`):
+  - `CreateReportDto` gồm `Reason` (`Required`, `MaxLength(500)`).
+  - `ReportResponseDto` gồm `Id`, `PostId`, `ReporterId`, `Reason`, `CreatedAt`.
+- [x] Tạo `Backend/Services/Interfaces/IReportsService.cs` với hàm:
+  - `CreateReportAsync(int postId, string reporterId, CreateReportDto dto)`.
+- [x] Tạo `Backend/Services/ReportsService.cs` implement `IReportsService`, inject:
+  - `IReportRepository`
+  - `IPostRepository`
+- [x] Hoàn thiện logic `CreateReportAsync(...)` đúng yêu cầu:
+  - Kiểm tra tồn tại post bằng `_postRepository.GetByIdAsync(postId)`.
+  - Không tồn tại -> throw `InvalidOperationException("Post not found.")`.
+  - Tạo mới `PostReport` với `PostId`, `ReporterId`, `Reason`, `CreatedAt = DateTime.UtcNow`.
+  - Gọi `AddAsync(...)` và `SaveChangesAsync()`.
+  - Mapping trả về `ReportResponseDto`.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - `AddScoped<IReportRepository, ReportRepository>()`
+  - `AddScoped<IReportsService, ReportsService>()`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không tạo `ReportsController` ở bước này.
+- [x] Không thêm endpoint mới.
+- [x] Không thay đổi schema/entity/migration.
+
+### Kết quả xác minh
+
+- [x] Diagnostics các file Reports mới/sửa: không phát sinh lỗi.
+- [x] Build backend xác minh compile thành công với output tạm để tránh lock file:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_reports1/`
+- [x] Runtime smoke-test DI/startup thành công:
+  - Chạy API từ thư mục output tạm tại `http://localhost:5063`.
+  - Truy cập `GET /swagger/v1/swagger.json` trả `200`.
+  - Đã dừng process backend test sau khi kiểm tra.
+
+---
+
+## Reports Module - Thin Slice 2 (ReportsController) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Controllers/ReportsController.cs` với:
+  - `[ApiController]`
+  - `[Route("api/reports")]`
+  - `[Authorize]`
+- [x] Inject `IReportsService`.
+- [x] Tạo endpoint `POST /api/reports/post/{postId:int}`:
+  - Nhận `CreateReportDto` từ body.
+  - Lấy `userId` từ token bằng `User.FindFirstValue(ClaimTypes.NameIdentifier)`.
+  - Gọi `CreateReportAsync(postId, userId, dto)`.
+  - Trả `201 Created` với `ApiResponse.Success(...)`.
+- [x] Chuẩn hóa response toàn bộ endpoint bằng `ApiResponse.Success(...)` / `ApiResponse.Failure(...)`.
+- [x] Bọc `try-catch` đúng mapping yêu cầu:
+  - `ArgumentException`, `InvalidOperationException` -> `400` + `ApiResponse.Failure(ex.Message)`
+  - `Exception` -> `500` + `ApiResponse.Failure("An error occurred while processing the request.")`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không thay đổi schema/entity/migration.
+- [x] Không thay đổi business logic trong `ReportsService`.
+- [x] Chỉ bổ sung `ReportsController` cho Thin Slice 2.
+
+### Kết quả xác minh
+
+- [x] Diagnostics: không có lỗi ở `ReportsController.cs`.
+- [x] Build backend thành công với output tạm:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_reports2/`
+
+### Kết quả test runtime thực tế (self-test)
+
+- [x] Chạy API từ thư mục output tạm tại `http://localhost:5065` (Development mode để kiểm tra Swagger).
+- [x] Tạo user test + login lấy JWT thành công.
+- [x] Tạo post test thành công để làm dữ liệu report (`postId=9`).
+- [x] `POST /api/reports/post/{postId}` -> `201` + payload report hợp lệ (`id`, `postId`, `reporterId`, `reason`, `createdAt`).
+- [x] `POST /api/reports/post/99999999` -> `400` + lỗi `Post not found.`.
+- [x] `GET /swagger/v1/swagger.json` -> `200`; tổng số operations hiện tại: `27`.
+- [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
+
+### Đồng bộ tracker/master plan
+
+- [x] Cập nhật `Master_Plan_Tracker.md`:
+  - Chốt DONE toàn bộ Giai đoạn 3 (RESTful APIs) -> `100%`.
+  - Chuyển hạng mục `SignalR` và `Azure Blob upload service` xuống Giai đoạn 6 theo quyết định mới.
+  - Cập nhật mốc endpoint runtime từ `26` lên `27` sau khi thêm Reports endpoint.
