@@ -480,3 +480,83 @@
 
 - [x] Build backend thành công sau cập nhật login response.
 - [x] Không có regression ở luồng Users đã triển khai (Thin Slice 1-2).
+
+---
+
+## Friends Module - Thin Slice 1 (Repository + DTO + Service + DI) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Repositories/Interfaces/IConnectionRepository.cs` kế thừa `IGenericRepository<Connection>`.
+- [x] Khai báo methods chuyên biệt:
+  - `Task<IEnumerable<Connection>> GetUserConnectionsAsync(string userId);`
+  - `Task<Connection?> GetConnectionAsync(string followerId, string followeeId);`
+- [x] Tạo `Backend/Repositories/ConnectionRepository.cs` kế thừa `GenericRepository<Connection>` và implement `IConnectionRepository`.
+- [x] Áp dụng eager loading với `Include(c => c.Follower)` và `Include(c => c.Followee)` cho truy vấn connection.
+- [x] Tạo DTO `Backend/DTOs/Friends/FriendResponseDto.cs` với các field: `UserId`, `UserName`, `AvatarUrl`, `Bio`.
+- [x] Tạo `Backend/Services/Interfaces/IFriendsService.cs` với 3 methods:
+  - `SendFriendRequestAsync(string followerId, string followeeId)`
+  - `GetFollowersAsync(string userId)`
+  - `GetFollowingAsync(string userId)`
+- [x] Tạo `Backend/Services/FriendsService.cs` implement `IFriendsService`.
+- [x] `FriendsService` inject `IConnectionRepository` + `UserManager<ApplicationUser>`.
+- [x] Hoàn thiện logic an toàn cho gửi follow/friend request:
+  - Không cho phép tự follow chính mình.
+  - Kiểm tra follower/followee có tồn tại.
+  - Kiểm tra connection đã tồn tại trước khi thêm mới.
+  - Bắt `DbUpdateException` và throw thông báo nghiệp vụ rõ ràng.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - `AddScoped<IConnectionRepository, ConnectionRepository>()`
+  - `AddScoped<IFriendsService, FriendsService>()`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không tạo `FriendsController` ở bước này.
+- [x] Không thêm endpoint mới.
+- [x] Không thay đổi schema/entity hoặc tạo thêm bảng.
+
+### Kết quả xác minh
+
+- [x] Build backend thành công sau khi thêm Friends Thin Slice 1 (`dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false`).
+- [x] Có warning lock file output do backend process đang chạy (`InteractHub.Api`), nhưng compile pass và không phát sinh lỗi code trong phạm vi thay đổi.
+
+---
+
+## Friends Module - Thin Slice 2 (FriendsController) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Controllers/FriendsController.cs` với:
+  - `[ApiController]`
+  - `[Route("api/friends")]`
+  - `[Authorize]`
+- [x] Inject `IFriendsService` vào controller.
+- [x] Tạo endpoint `POST /api/friends/{followeeId}`:
+  - Lấy `followerId` từ token bằng `User.FindFirstValue(ClaimTypes.NameIdentifier)`.
+  - Gọi `SendFriendRequestAsync(followerId, followeeId)`.
+- [x] Tạo endpoint `GET /api/friends/{userId}/followers`.
+- [x] Tạo endpoint `GET /api/friends/{userId}/following`.
+- [x] Chuẩn hóa response cho toàn bộ endpoint bằng `ApiResponse.Success(...)` / `ApiResponse.Failure(...)`.
+- [x] Bổ sung `try-catch` cho `ArgumentException`, `InvalidOperationException` và `Exception` để trả `BadRequest` với thông báo lỗi phù hợp.
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không thay đổi business logic trong `FriendsService`.
+- [x] Không thay đổi schema/entity/migration.
+- [x] Không thêm controller ngoài `FriendsController`.
+
+### Kết quả xác minh
+
+- [x] Kiểm tra diagnostics: không có lỗi ở `FriendsController.cs`.
+- [x] Build backend thành công sau khi thêm controller (`dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false`).
+
+### Kết quả test runtime thực tế (self-test)
+
+- [x] Chạy backend local trên `http://localhost:5049` để test E2E Friends module.
+- [x] Đăng ký 2 user test mới và login lấy JWT + `userId` thành công (`200`).
+- [x] `POST /api/friends/{followeeId}` với token hợp lệ -> `200` + envelope success + message xác nhận.
+- [x] `GET /api/friends/{userId}/followers` -> `200` + trả đúng user follower trong `data[]`.
+- [x] `GET /api/friends/{userId}/following` -> `200` + trả đúng user followee trong `data[]`.
+- [x] Case tự follow chính mình -> `400` + envelope lỗi `You cannot follow yourself.`.
+- [x] Case follow trùng -> `400` + envelope lỗi `Connection already exists.`.
+- [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
