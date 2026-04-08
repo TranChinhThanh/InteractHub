@@ -52,6 +52,7 @@ public sealed class TokenService : ITokenService
         return new AuthResponseDto
         {
             Token = new JwtSecurityTokenHandler().WriteToken(jwt),
+            UserId = user.Id,
             Username = user.UserName ?? string.Empty,
             ExpiresAtUtc = expiresAtUtc,
         };

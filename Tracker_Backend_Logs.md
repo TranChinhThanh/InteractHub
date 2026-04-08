@@ -392,3 +392,91 @@
 
 - [x] Build backend thành công sau refactor PostService và cập nhật DI repository.
 - [x] Không còn tham chiếu `_dbContext`/`ApplicationDbContext` trong `PostService`.
+
+---
+
+## Users Module - Thin Slice 1 (DTO + Service + DI) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo thư mục `Backend/DTOs/Users` và tạo DTO:
+  - `UserProfileResponseDto` (`Id`, `UserName`, `Email`, `Bio`, `AvatarUrl`, `DateJoined`, `Role`)
+  - `UpdateProfileDto` (`Bio`, `AvatarUrl`)
+- [x] Tạo `Backend/Services/Interfaces/IUsersService.cs` với 2 hàm:
+  - `GetUserProfileAsync(string userId)`
+  - `UpdateProfileAsync(string userId, UpdateProfileDto dto)`
+- [x] Tạo `Backend/Services/UsersService.cs` implement `IUsersService`.
+- [x] `UsersService` inject `UserManager<ApplicationUser>` và **không** dùng trực tiếp `ApplicationDbContext`.
+- [x] Mapping DTO được xử lý thủ công (không dùng AutoMapper).
+- [x] Cập nhật DI trong `Backend/Program.cs`: `AddScoped<IUsersService, UsersService>()`.
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Chưa tạo `UsersController`.
+- [x] Không tạo thêm endpoint mới trong bước này.
+- [x] Không tạo thêm bảng/entity mới.
+
+### Kết quả xác minh
+
+- [x] Build backend thành công sau khi thêm Users thin slice 1.
+- [x] Không phát sinh lỗi compile trong phạm vi thay đổi.
+
+---
+
+## Users Module - Thin Slice 2 (UsersController) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Controllers/UsersController.cs` với:
+  - `[ApiController]`
+  - `[Route("api/users")]`
+  - `[Authorize]`
+- [x] Inject `IUsersService`.
+- [x] Tạo endpoint `GET /api/users/{id}` (route parameter đặt tên `userId` để tương thích policy, URL thực tế không đổi) cho user đã login.
+- [x] Tạo endpoint `PUT /api/users/{id}` nhận `UpdateProfileDto`.
+- [x] Bảo mật endpoint PUT bằng `[Authorize(Policy = "SelfOrAdmin")]`.
+- [x] Chuẩn hóa response format toàn bộ endpoint bằng `ApiResponse.Success/Failure` (`success/data/errors`).
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không thêm business logic vào controller.
+- [x] Không thay đổi `UsersService` contract.
+- [x] Không tạo thêm endpoint ngoài 2 endpoint yêu cầu.
+
+### Kết quả test thực tế
+
+- [x] `GET /api/users/{id}` không token -> `401` + body chuẩn `success=false,data=null,errors=["Authentication required."]`.
+- [x] `GET /api/users/{id}` với token hợp lệ và id tồn tại -> `200` + body chuẩn `success=true,data,errors=[]`.
+- [x] `GET /api/users/{id}` với id không tồn tại -> `404` + body chuẩn `errors=["User not found"]`.
+- [x] `PUT /api/users/{id}` self update với token hợp lệ -> `200` + body chuẩn `success=true,data,errors=[]`.
+- [x] `PUT /api/users/{id}` không phải chủ sở hữu -> `403` + body chuẩn `You do not have permission...`.
+- [x] `PUT /api/users/{id}` payload JSON lỗi cú pháp -> `400` + body chuẩn `success=false,data=null,errors=[...]`.
+
+### Kết quả xác minh
+
+- [x] Build backend thành công sau khi thêm `UsersController`.
+- [x] Runtime test đạt đủ các case B2/B3 cho 2 endpoint Users thin slice 2.
+
+---
+
+## Auth QoL - Login trả kèm `userId` + Re-test Users flow (08/04/2026)
+
+### Phạm vi thực hiện
+
+- [x] Cập nhật `Backend/DTOs/Auth/AuthResponseDto.cs` để thêm trường `UserId` trong data trả về login.
+- [x] Cập nhật `Backend/Services/TokenService.cs` để map `UserId = user.Id` khi generate token response.
+
+### Kết quả re-test thực tế (sau thay đổi)
+
+- [x] `POST /api/auth/login` trả `200` và data có đủ `token`, `userId`, `username`, `expiresAtUtc`.
+- [x] `GET /api/users/{id}` không token -> `401` với response envelope chuẩn.
+- [x] `GET /api/users/{id}` với token + id từ login response -> `200`.
+- [x] `GET /api/users/{id}` id không tồn tại -> `404` với `errors=["User not found"]`.
+- [x] `PUT /api/users/{id}` self update -> `200`.
+- [x] `PUT /api/users/{id}` không phải chủ sở hữu -> `403` (policy `SelfOrAdmin`).
+- [x] `PUT /api/users/{id}` JSON lỗi cú pháp -> `400` với response envelope chuẩn.
+
+### Kết quả xác minh
+
+- [x] Build backend thành công sau cập nhật login response.
+- [x] Không có regression ở luồng Users đã triển khai (Thin Slice 1-2).

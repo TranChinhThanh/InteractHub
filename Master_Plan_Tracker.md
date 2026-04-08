@@ -24,9 +24,9 @@
 - [ ] **F3:** React Hook Form + validation + upload preview + UX states.
 - [ ] **F4:** Routing/protected routes + search debounce + pagination/infinite + lazy/skeleton + SignalR client + client-side caching dữ liệu truy cập thường xuyên.
 - [/] **B1:** Database & EF (đã có entities/relationships/migrations cơ bản; còn đủ >= 3 migrations, seed data, database diagram).
-- [/] **B2:** RESTful API + DTO (đã có Auth/Posts + standardized response format cho Auth/Posts và middleware 401/403; còn đủ bộ 6 controllers, >= 20 endpoints, mở rộng response format cho các controller mới, và Swagger examples request/response).
+- [/] **B2:** RESTful API + DTO (đã có Auth/Posts/Users + standardized response format cho Auth/Posts/Users và middleware 401/403; còn đủ bộ 6 controllers, >= 20 endpoints, mở rộng response format cho các controller mới, và Swagger examples request/response).
 - [x] **B3:** JWT auth/authz (đã có JWT + role seeding + role-based + policy-based authorization).
-- [/] **B4:** Services layer theo rubric (đã dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + DI; còn mở rộng cho các service khác để đạt >= 5 services và Azure Blob upload service).
+- [/] **B4:** Services layer theo rubric (đã dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + DI + thêm `UsersService` (UserManager-based); còn mở rộng cho các service khác để đạt >= 5 services và Azure Blob upload service).
 - [ ] **T1:** Unit/Integration testing theo ngưỡng rubric (bắt buộc test logic Authentication/Authorization của AuthService).
 - [ ] **D1:** Azure deployment + CI/CD + monitoring.
 
@@ -63,13 +63,13 @@
 - [ ] **Stories API:** CRUD story (Tự động hết hạn sau 24h).
 - [ ] **Notifications API:** Lấy danh sách thông báo, đánh dấu đã đọc.
 - [ ] **Reports API:** Tạo report cho bài viết.
-- [ ] **Users API:** Hồ sơ user, cập nhật profile, lấy thông tin user theo id/username.
+- [/] **Users API:** Hồ sơ user, cập nhật profile, lấy thông tin user theo id/username (đã có Thin Slice 1 + Thin Slice 2: `UsersController` với `GET /api/users/{id}` và `PUT /api/users/{id}` + policy `SelfOrAdmin`; còn mở rộng endpoint theo roadmap).
 - [ ] Hoàn thiện đủ bộ controller bắt buộc theo đề: `AuthController`, `PostsController`, `UsersController`, `FriendsController`, `StoriesController`, `NotificationsController`.
-- [/] Triển khai DTOs cho toàn bộ endpoint + validation DataAnnotations (Posts đã có, các module khác chưa).
-- [/] Chuẩn hóa API response format thống nhất (`success`, `data`, `errors`) (đã áp dụng cho Auth + Posts + middleware 401/403, còn mở rộng toàn bộ controller).
+- [/] Triển khai DTOs cho toàn bộ endpoint + validation DataAnnotations (đã có Posts + Users Thin Slice 1, các module khác chưa).
+- [/] Chuẩn hóa API response format thống nhất (`success`, `data`, `errors`) (đã áp dụng cho Auth + Posts + Users + middleware 401/403, còn mở rộng toàn bộ controller).
 - [ ] Cấu hình Swagger nâng cao: bật XML Comments và thêm Example Requests/Responses cho các API chính (theo yêu cầu B2).
 - [ ] Đảm bảo tối thiểu **6 controllers** và **20 endpoints** theo requirement B2.
-- [/] Bổ sung Repository pattern + tối thiểu 5 service classes (B4) (đã có `IGenericRepository<T>` + `GenericRepository<T>` + `IPostRepository` + `PostRepository`, đã refactor `PostService` và đăng ký DI repository; còn áp dụng cho các service khác).
+- [/] Bổ sung Repository pattern + tối thiểu 5 service classes (B4) (đã có `IGenericRepository<T>` + `GenericRepository<T>` + `IPostRepository` + `PostRepository`, đã refactor `PostService`, thêm `UsersService` và đăng ký DI; hiện có 3 service classes chính `AuthService`, `PostService`, `UsersService`, còn mở rộng để đạt >= 5).
 - [ ] File upload service dùng Azure Blob Storage cho ảnh (B4/D1).
 - [ ] Tích hợp SignalR cho thông báo real-time.
 
@@ -129,7 +129,7 @@
 
 - [/] Giai đoạn 1: Thiết Kế CSDL & EF Core: 80% (đã xong entities/relationships/migrations nền tảng; còn yêu cầu >= 3 migrations, seed data, database diagram).
 - [x] Giai đoạn 2: Backend Core & Security: 100% (đã hoàn thiện Identity/JWT/CORS/Auth + role seeding + role/policy authorization theo rubric B3).
-- [/] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 44% (đã hoàn thành Posts Step 1-5 + chuẩn response format cho Auth/Posts + dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository; còn Users/Friends/Stories/Notifications/... + 6 controllers/20 endpoints + mở rộng format toàn bộ).
+- [/] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 47% (đã hoàn thành Posts Step 1-5 + chuẩn response format cho Auth/Posts/Users + dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + Users Thin Slice 1-2; còn Friends/Stories/Notifications/... + 6 controllers/20 endpoints + mở rộng format toàn bộ).
 - [/] Giai đoạn 4: Frontend Setup: 30% (đã có Vite + React + TS + Tailwind; còn state management, kiến trúc component/hook, protected routes, lazy/skeleton).
 - [ ] Giai đoạn 5: Frontend Integration: 0%.
 - [ ] Giai đoạn 6: Test & Cloud Deployment: 0%.
