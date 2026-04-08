@@ -739,3 +739,210 @@
 - [x] `PUT /api/notifications/{id}/read` với token user khác -> `403` + lỗi `You do not have permission to modify this notification.`.
 - [x] `PUT /api/notifications/999999/read` -> `400` + lỗi `Notification not found.`.
 - [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
+
+---
+
+## Comments Module - Thin Slice 1 (Repository + DTO + Service + DI) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Repositories/Interfaces/ICommentRepository.cs` kế thừa `IGenericRepository<Comment>`.
+- [x] Khai báo method chuyên biệt `Task<IEnumerable<Comment>> GetCommentsByPostIdAsync(int postId);`.
+- [x] Tạo `Backend/Repositories/CommentRepository.cs` implement `ICommentRepository`.
+- [x] Cài đặt `GetCommentsByPostIdAsync(...)` theo đúng rule:
+  - Lọc theo `PostId`.
+  - `Include(comment => comment.User)` để lấy thông tin user.
+  - Sắp xếp `CreatedAt` giảm dần (mới nhất lên đầu).
+  - Dùng `.AsNoTracking()` để tối ưu truy vấn đọc.
+- [x] Tạo DTOs trong `Backend/DTOs/Comments`:
+  - `CreateCommentDto` (`Content`: `Required`, `MaxLength(500)`).
+  - `CommentResponseDto` (`Id`, `PostId`, `UserId`, `UserName`, `UserAvatarUrl`, `Content`, `CreatedAt`).
+- [x] Tạo `Backend/Services/Interfaces/ICommentsService.cs` với 3 hàm:
+  - `CreateCommentAsync(int postId, string userId, CreateCommentDto dto)`
+  - `GetCommentsByPostIdAsync(int postId)`
+  - `DeleteCommentAsync(int commentId, string userId)`
+- [x] Tạo `Backend/Services/CommentsService.cs` implement `ICommentsService` và inject:
+  - `ICommentRepository`
+  - `IPostRepository`
+  - `UserManager<ApplicationUser>`
+- [x] Hoàn thiện logic `CreateCommentAsync(...)` đúng yêu cầu:
+  - Dùng `_postRepository.GetByIdAsync(postId)` kiểm tra post tồn tại.
+  - Không tồn tại -> throw `InvalidOperationException("Post not found.")`.
+  - Gán `CreatedAt = DateTime.UtcNow` khi tạo comment.
+- [x] Hoàn thiện logic `DeleteCommentAsync(...)` đúng yêu cầu:
+  - Chỉ cho phép xóa khi user là `Admin` hoặc là chủ comment (`comment.UserId == userId`).
+  - Sai quyền -> throw `UnauthorizedAccessException("You do not have permission to delete this comment.")`.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - `AddScoped<ICommentRepository, CommentRepository>()`
+  - `AddScoped<ICommentsService, CommentsService>()`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không tạo `CommentsController` ở bước này.
+- [x] Không thêm endpoint mới.
+- [x] Không thay đổi schema/entity/migration.
+
+### Kết quả xác minh
+
+- [x] Diagnostics các file Comments mới/sửa: không phát sinh lỗi.
+- [x] Build backend xác minh compile thành công với output tạm để tránh lock file:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_comments1/`
+- [x] Runtime smoke-test DI/startup thành công:
+  - Chạy API từ thư mục output tạm tại `http://localhost:5055`.
+  - Truy cập `GET /swagger/v1/swagger.json` trả `200`.
+  - Dừng process backend sau khi test để tránh lock file build.
+
+---
+
+## Comments Module - Thin Slice 2 (CommentsController) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Controllers/CommentsController.cs` với:
+  - `[ApiController]`
+  - `[Route("api/comments")]`
+  - `[Authorize]`
+- [x] Inject `ICommentsService`.
+- [x] Tạo endpoint `POST /api/comments/post/{postId:int}`:
+  - Nhận `CreateCommentDto` từ body.
+  - Lấy `userId` từ token bằng `User.FindFirstValue(ClaimTypes.NameIdentifier)`.
+  - Gọi `CreateCommentAsync(postId, userId, dto)`.
+  - Trả `201 Created` với `ApiResponse.Success(...)`.
+- [x] Tạo endpoint `GET /api/comments/post/{postId:int}`:
+  - Mở `[AllowAnonymous]` để user chưa đăng nhập cũng xem được comment.
+  - Gọi `GetCommentsByPostIdAsync(postId)`.
+  - Trả `200 OK` với `ApiResponse.Success(...)`.
+- [x] Tạo endpoint `DELETE /api/comments/{id:int}`:
+  - Lấy `userId` từ token.
+  - Gọi `DeleteCommentAsync(id, userId)`.
+  - Trả `200 OK` + message `Comment deleted successfully.`.
+- [x] Chuẩn hóa response toàn bộ endpoint bằng `ApiResponse.Success(...)` / `ApiResponse.Failure(...)`.
+- [x] Bọc `try-catch` đúng mapping yêu cầu:
+  - `UnauthorizedAccessException` -> `403` + `ApiResponse.Failure(ex.Message)`
+  - `ArgumentException`, `InvalidOperationException` -> `400` + `ApiResponse.Failure(ex.Message)`
+  - `Exception` -> `500` + `ApiResponse.Failure("An error occurred while processing the request.")`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không thay đổi business logic trong `CommentsService`.
+- [x] Không thay đổi schema/entity/migration.
+- [x] Chỉ thêm `CommentsController` cho Thin Slice 2.
+
+### Kết quả xác minh
+
+- [x] Diagnostics: không có lỗi ở `CommentsController.cs`.
+- [x] Build backend thành công với output tạm:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_comments2/`
+
+### Kết quả test runtime thực tế (self-test)
+
+- [x] Chạy API từ thư mục output tạm tại `http://localhost:5057`.
+- [x] Đăng ký 2 user test + login thành công (`200`) bằng contract hiện tại (`register` cần `fullName`, `login` dùng `username`).
+- [x] Tạo post test (`POST /api/posts`) -> `201`.
+- [x] `POST /api/comments/post/{postId}` với owner token -> `201`.
+- [x] `GET /api/comments/post/{postId}` không token (`AllowAnonymous`) -> `200`.
+- [x] `DELETE /api/comments/{id}` với user không phải owner -> `403` + lỗi `You do not have permission to delete this comment.`.
+- [x] `DELETE /api/comments/{id}` với owner token -> `200` + message success.
+- [x] `POST /api/comments/post/99999999` -> `400` + lỗi `Post not found.`.
+- [x] Check Swagger runtime operation count -> `24 endpoints` (đạt mốc >= 21 endpoint).
+- [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
+
+---
+
+## Likes Module - Thin Slice 1 (Repository + DTO + Service + DI) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Repositories/Interfaces/ILikeRepository.cs` kế thừa `IGenericRepository<Like>`.
+- [x] Khai báo 2 methods chuyên biệt:
+  - `Task<Like?> GetPostLikeAsync(int postId, string userId);`
+  - `Task<Like?> GetCommentLikeAsync(int commentId, string userId);`
+- [x] Tạo `Backend/Repositories/LikeRepository.cs` implement `ILikeRepository`.
+- [x] Cài đặt truy vấn GET với `.AsNoTracking()` đúng yêu cầu:
+  - `GetPostLikeAsync(...)` truy vấn like theo `PostId` + `UserId`.
+  - `GetCommentLikeAsync(...)` truy vấn like theo `CommentId` + `UserId`.
+- [x] Tạo thư mục `Backend/DTOs/Likes` và record `ToggleLikeResponseDto` với 1 property `bool IsLiked`.
+- [x] Tạo `Backend/Services/Interfaces/ILikesService.cs` với 2 hàm:
+  - `TogglePostLikeAsync(int postId, string userId)`
+  - `ToggleCommentLikeAsync(int commentId, string userId)`
+- [x] Tạo `Backend/Services/LikesService.cs` implement `ILikesService`, inject:
+  - `ILikeRepository`
+  - `IPostRepository`
+  - `ICommentRepository`
+- [x] Hoàn thiện logic `TogglePostLikeAsync(...)` đúng yêu cầu:
+  - Kiểm tra tồn tại post bằng `_postRepository.GetByIdAsync(postId)`.
+  - Không tồn tại -> throw `InvalidOperationException("Post not found.")`.
+  - Đã like -> `Delete` + `SaveChangesAsync()` + trả `IsLiked = false`.
+  - Chưa like -> `Add` + `SaveChangesAsync()` + trả `IsLiked = true`.
+- [x] Hoàn thiện logic `ToggleCommentLikeAsync(...)` đúng yêu cầu:
+  - Kiểm tra tồn tại comment bằng `_commentRepository.GetByIdAsync(commentId)`.
+  - Không tồn tại -> throw `InvalidOperationException("Comment not found.")`.
+  - Đã like -> `Delete` + `SaveChangesAsync()` + trả `IsLiked = false`.
+  - Chưa like -> `Add` + `SaveChangesAsync()` + trả `IsLiked = true`.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - `AddScoped<ILikeRepository, LikeRepository>()`
+  - `AddScoped<ILikesService, LikesService>()`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không tạo `LikesController` ở bước này.
+- [x] Không thêm endpoint mới.
+- [x] Không thay đổi schema/entity/migration.
+
+### Kết quả xác minh
+
+- [x] Diagnostics các file Likes mới/sửa: không phát sinh lỗi.
+- [x] Build backend xác minh compile thành công với output tạm để tránh lock file:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_likes1/`
+- [x] Runtime smoke-test DI/startup thành công:
+  - Chạy API từ thư mục output tạm tại `http://localhost:5059`.
+  - Truy cập `GET /swagger/v1/swagger.json` trả `200`.
+  - Đã dừng process backend test sau khi kiểm tra.
+
+---
+
+## Likes Module - Thin Slice 2 (LikesController) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Controllers/LikesController.cs` với:
+  - `[ApiController]`
+  - `[Route("api/likes")]`
+  - `[Authorize]`
+- [x] Inject `ILikesService`.
+- [x] Tạo endpoint `POST /api/likes/post/{postId:int}`:
+  - Lấy `userId` từ token bằng `User.FindFirstValue(ClaimTypes.NameIdentifier)`.
+  - Gọi `TogglePostLikeAsync(postId, userId)`.
+  - Trả `200 OK` với `ApiResponse.Success(ToggleLikeResponseDto)`.
+- [x] Tạo endpoint `POST /api/likes/comment/{commentId:int}`:
+  - Lấy `userId` từ token.
+  - Gọi `ToggleCommentLikeAsync(commentId, userId)`.
+  - Trả `200 OK` với `ApiResponse.Success(ToggleLikeResponseDto)`.
+- [x] Chuẩn hóa response toàn bộ endpoint bằng `ApiResponse.Success(...)` / `ApiResponse.Failure(...)`.
+- [x] Bọc `try-catch` đúng mapping yêu cầu:
+  - `ArgumentException`, `InvalidOperationException` -> `400` + `ApiResponse.Failure(ex.Message)`
+  - `Exception` -> `500` + `ApiResponse.Failure("An error occurred while processing the request.")`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không thay đổi business logic trong `LikesService`.
+- [x] Không thay đổi schema/entity/migration.
+- [x] Chỉ thêm `LikesController` cho Thin Slice 2.
+
+### Kết quả xác minh
+
+- [x] Diagnostics: không có lỗi ở `LikesController.cs`.
+- [x] Build backend thành công với output tạm:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_likes2/`
+
+### Kết quả test runtime thực tế (self-test)
+
+- [x] Chạy API từ thư mục output tạm tại `http://localhost:5061`.
+- [x] Tạo user test, login lấy JWT thành công.
+- [x] Tạo post test + comment test thành công để làm dữ liệu toggle.
+- [x] `POST /api/likes/post/{postId}` lần 1 -> `200` + `isLiked=true`; lần 2 -> `200` + `isLiked=false`.
+- [x] `POST /api/likes/comment/{commentId}` lần 1 -> `200` + `isLiked=true`; lần 2 -> `200` + `isLiked=false`.
+- [x] `POST /api/likes/post/99999999` -> `400` + lỗi `Post not found.`.
+- [x] `POST /api/likes/comment/99999999` -> `400` + lỗi `Comment not found.`.
+- [x] Check Swagger runtime operation count -> `26 endpoints`.
+- [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
