@@ -652,3 +652,90 @@
 - [x] `DELETE /api/stories/{id}` bằng user không phải owner -> `403` + envelope lỗi `You do not have permission...`.
 - [x] `DELETE /api/stories/{id}` bằng đúng owner -> `200` + envelope success (`Story deleted successfully.`).
 - [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
+
+---
+
+## Notifications Module - Thin Slice 1 (Repository + DTO + Service + DI) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Repositories/Interfaces/INotificationRepository.cs` kế thừa `IGenericRepository<Notification>`.
+- [x] Khai báo method chuyên biệt `Task<IEnumerable<Notification>> GetUserNotificationsAsync(string userId);`.
+- [x] Tạo `Backend/Repositories/NotificationRepository.cs` implement `INotificationRepository`.
+- [x] Cài đặt `GetUserNotificationsAsync(...)` theo đúng rule:
+  - Lọc theo `notification.UserId == userId`.
+  - Sắp xếp `CreatedAt` giảm dần (mới nhất lên đầu).
+  - Dùng `.AsNoTracking()` để tối ưu đọc.
+- [x] Tạo DTO `Backend/DTOs/Notifications/NotificationResponseDto.cs` gồm:
+  - `Id`, `UserId`, `Type`, `Content`, `IsRead`, `RelatedEntityId`, `CreatedAt`.
+- [x] Tạo `Backend/Services/Interfaces/INotificationsService.cs` với 2 hàm:
+  - `GetUserNotificationsAsync(string userId)`
+  - `MarkAsReadAsync(int notificationId, string userId)`
+- [x] Tạo `Backend/Services/NotificationsService.cs` implement `INotificationsService` và inject `INotificationRepository`.
+- [x] Hoàn thiện logic `MarkAsReadAsync(...)` đúng yêu cầu:
+  - `GetByIdAsync(notificationId)` -> null thì throw `InvalidOperationException("Notification not found.")`.
+  - Kiểm tra quyền `notification.UserId != userId` -> throw `UnauthorizedAccessException("You do not have permission to modify this notification.")`.
+  - Hợp lệ thì set `notification.IsRead = true`, gọi `Update(...)` và `SaveChangesAsync()`.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - `AddScoped<INotificationRepository, NotificationRepository>()`
+  - `AddScoped<INotificationsService, NotificationsService>()`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không tạo `NotificationsController` ở bước này.
+- [x] Không thêm endpoint mới.
+- [x] Không thay đổi schema/entity/migration.
+
+### Kết quả xác minh
+
+- [x] Diagnostics các file Notifications mới/sửa: không phát sinh lỗi.
+- [x] Build backend xác minh compile thành công với output tạm để tránh lock file:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_notifications1/`
+
+---
+
+## Notifications Module - Thin Slice 2 (NotificationsController) (08/04/2026)
+
+### Phạm vi thực hiện (đúng theo yêu cầu)
+
+- [x] Tạo `Backend/Controllers/NotificationsController.cs` với:
+  - `[ApiController]`
+  - `[Route("api/notifications")]`
+  - `[Authorize]`
+- [x] Inject `INotificationsService`.
+- [x] Tạo endpoint `GET /api/notifications`:
+  - Lấy `userId` từ token bằng `User.FindFirstValue(ClaimTypes.NameIdentifier)`.
+  - Gọi `GetUserNotificationsAsync(userId)`.
+  - Trả `200 OK`.
+- [x] Tạo endpoint `PUT /api/notifications/{id}/read`:
+  - Lấy `userId` từ token.
+  - Gọi `MarkAsReadAsync(id, userId)`.
+  - Trả `200 OK` + message xác nhận.
+- [x] Chuẩn hóa response theo `ApiResponse.Success(...)` / `ApiResponse.Failure(...)`.
+- [x] Áp dụng `try-catch` đúng mapping yêu cầu:
+  - `UnauthorizedAccessException` -> `403` + `ApiResponse.Failure(ex.Message)`
+  - `ArgumentException`, `InvalidOperationException` -> `400` + `ApiResponse.Failure(ex.Message)`
+  - `Exception` -> `500` + `ApiResponse.Failure("An error occurred while processing the request.")`
+
+### Giới hạn phạm vi (không làm vượt yêu cầu)
+
+- [x] Không thay đổi business logic trong `NotificationsService`.
+- [x] Không thay đổi schema/entity/migration.
+- [x] Chỉ thêm `NotificationsController` cho Thin Slice 2.
+
+### Kết quả xác minh
+
+- [x] Diagnostics: không có lỗi ở `NotificationsController.cs`.
+- [x] Build backend thành công với output tạm:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutDir=Backend/bin/tmpverify_notifications2/`
+
+### Kết quả test runtime thực tế (self-test)
+
+- [x] Chạy API từ build output tạm tại `http://localhost:5053` để test endpoint Notifications.
+- [x] Đăng ký 2 user test và login thành công (`200`).
+- [x] Seed 1 notification test cho user bằng `sqlcmd` vào bảng `Notifications`.
+- [x] `GET /api/notifications` với token owner -> `200` + trả danh sách notifications của user.
+- [x] `PUT /api/notifications/{id}/read` với token owner -> `200` + message `Notification marked as read successfully.`.
+- [x] `PUT /api/notifications/{id}/read` với token user khác -> `403` + lỗi `You do not have permission to modify this notification.`.
+- [x] `PUT /api/notifications/999999/read` -> `400` + lỗi `Notification not found.`.
+- [x] Đã dừng process backend test sau khi hoàn tất để tránh lock file build.
