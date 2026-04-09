@@ -32,3 +32,28 @@
 - Thêm route guard `src/components/ProtectedRoute.tsx` và bảo vệ route `/` trong `src/App.tsx` bằng `Navigate` về `/login` khi chưa xác thực.
 - Nối API vào `src/pages/LoginPage.tsx`: submit gọi `useAuth().login`, bắt lỗi API qua `try/catch`, hiển thị `errorMsg` từ backend khi đăng nhập sai.
 - Kiểm tra kỹ thuật sau thay đổi: `npm run lint` pass, `npm run build` pass.
+
+## 09/04/2026 - Authentication Lifecycle Slice (Logout + Token Expiration)
+
+- Cập nhật `src/api/axiosClient.ts`: thêm xử lý global `401` ở response interceptor, tự động xóa `auth_token`, `auth_user_id`, `auth_username` khỏi localStorage và ép redirect về `/login`.
+- Cập nhật `src/components/Navbar.tsx`: nối `useAuth()` + `useNavigate()`, hiển thị `Xin chào, {user?.username}` và thêm nút `Đăng xuất` gọi `logout()` + `navigate('/login')`.
+- Cập nhật `src/App.tsx`: thêm `HomeTest` component trong file và render thông báo xác nhận token/login thành công bên trong route `/` đã được bảo vệ.
+- Cập nhật `Master_Plan_Tracker.md`: tăng tiến độ F2/F4, tiến độ Giai đoạn 4/5 theo lát cắt vòng đời authentication.
+
+## 09/04/2026 - Authentication Register Slice (RHF + Axios + Router)
+
+- Mở rộng `src/types/index.ts`: thêm `RegisterRequestDto` để đồng bộ contract đăng ký với backend.
+- Mở rộng `src/services/authService.ts`: thêm hàm `register(payload)` gọi `POST /auth/register`, trả về `ApiResponse<any>`.
+- Tạo `src/pages/RegisterPage.tsx` bằng React Hook Form với validation đầy đủ: required fields, email regex, password minLength, confirmPassword matching.
+- Nối submit register với service layer, loại bỏ `confirmPassword` khỏi payload gửi backend, bắt lỗi qua `isAxiosError` và hiển thị mảng `errors` từ backend.
+- Khi register thành công: `window.alert(...)` + điều hướng về `/login`.
+- Cập nhật `src/pages/LoginPage.tsx`: thêm link điều hướng sang `/register`.
+- Cập nhật `src/App.tsx`: thêm route `/register`.
+- Kiểm tra kỹ thuật sau thay đổi: build/lint và test API auth flow register + login.
+
+## 09/04/2026 - Hotfix Authentication UX (401 on Login/Register)
+
+- Điều tra bug UX: khi nhập sai mật khẩu, lỗi đỏ hiển thị chớp rồi mất và form bị reset.
+- Xác định nguyên nhân: backend trả `401` cho login sai mật khẩu, trúng global interceptor nên bị `window.location.href='/login'` gây reload trang.
+- Sửa `src/api/axiosClient.ts`: thêm điều kiện loại trừ `/auth/login` và `/auth/register` khỏi nhánh redirect global `401`.
+- Kết quả mong đợi sau fix: lỗi backend hiển thị ổn định trên form, không reset input khi đăng nhập sai; global `401` vẫn hoạt động cho protected APIs.

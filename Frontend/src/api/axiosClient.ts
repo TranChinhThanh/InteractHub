@@ -1,6 +1,8 @@
 import axios, { AxiosHeaders, type InternalAxiosRequestConfig } from "axios";
 
 const TOKEN_STORAGE_KEY = "auth_token";
+const USER_ID_STORAGE_KEY = "auth_user_id";
+const USERNAME_STORAGE_KEY = "auth_username";
 
 const axiosClient = axios.create({
   baseURL: "http://localhost:5035/api",
@@ -23,7 +25,21 @@ axiosClient.interceptors.request.use(
 
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error),
+  (error) => {
+    const requestUrl = String(error.config?.url ?? "");
+    const isAuthEndpoint =
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/register");
+
+    if (error.response?.status === 401 && !isAuthEndpoint) {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(USER_ID_STORAGE_KEY);
+      localStorage.removeItem(USERNAME_STORAGE_KEY);
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
+  },
 );
 
 export default axiosClient;

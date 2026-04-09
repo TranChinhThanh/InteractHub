@@ -1,5 +1,9 @@
 import axiosClient from "../api/axiosClient";
-import type { ApiResponse, LoginResponseData } from "../types";
+import type {
+  ApiResponse,
+  LoginResponseData,
+  RegisterRequestDto,
+} from "../types";
 
 export interface LoginRequestDto {
   username: string;
@@ -16,3 +20,16 @@ export const login = async (
 
   return response.data;
 };
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+export const register = async (
+  payload: RegisterRequestDto,
+): Promise<ApiResponse<any>> => {
+  const response = await axiosClient.post<ApiResponse<any>>(
+    "/auth/register",
+    payload,
+  );
+
+  return response.data;
+};
+/* eslint-enable @typescript-eslint/no-explicit-any */

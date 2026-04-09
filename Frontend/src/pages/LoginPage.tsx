@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 interface LoginFormValues {
@@ -91,6 +91,16 @@ function LoginPage() {
               {errorMsg}
             </p>
           ) : null}
+
+          <p className="text-sm text-gray-600">
+            Chưa có tài khoản?{" "}
+            <Link
+              to="/register"
+              className="font-medium text-blue-600 hover:underline"
+            >
+              Đăng ký ngay
+            </Link>
+          </p>
         </form>
       </div>
     </div>

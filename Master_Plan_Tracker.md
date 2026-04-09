@@ -20,8 +20,8 @@
 ## Ma trận Requirement Chấm Điểm
 
 - [/] **F1:** Component architecture + responsive design (mục tiêu >= 15 components; đã bắt đầu scaffold cấu trúc `components/layouts/pages/services/contexts/types` và layout nền).
-- [/] **F2:** State management + API integration + interceptors + auth flow + client-side caching (đã hoàn thành thin slice login với React Context + Axios client/interceptors + service layer + route guard; còn thiếu caching và mở rộng flow).
-- [/] **F3:** React Hook Form + validation + upload preview + UX states (đã refactor `LoginPage` sang React Hook Form với validation `required` + `minLength`; còn mở rộng cho các form nghiệp vụ khác).
+- [/] **F2:** State management + API integration + interceptors + auth flow + client-side caching (đã hoàn thành thin slice login + logout + 401 handling với React Context + Axios client/interceptors + service layer + route guard; còn thiếu caching và mở rộng flow).
+- [/] **F3:** React Hook Form + validation + upload preview + UX states (đã hoàn thành RHF + validation cho cả login/register gồm required, email format, password minLength, confirmPassword match; còn mở rộng cho các form nghiệp vụ khác).
 - [/] **F4:** Routing/protected routes + search debounce + pagination/infinite + lazy/skeleton + SignalR client + client-side caching dữ liệu truy cập thường xuyên (đã setup routing cơ bản `/` + `/login`; chưa có protected routes và dynamic features).
 - [/] **B1:** Database & EF (đã có entities/relationships/migrations cơ bản; còn đủ >= 3 migrations, seed data, database diagram).
 - [x] **B2:** RESTful API + DTO (đã có Auth/Posts/Users/Friends/Stories/Notifications + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller) + Reports Thin Slice 1-2 (repository + DTO + service + DI + controller `POST /api/reports/post/{postId:int}`), chuẩn hóa response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes/Reports + middleware 401/403; đã vượt mốc endpoint tối thiểu với 27 endpoints qua Swagger runtime check).
@@ -78,22 +78,22 @@
 - [x] Tích hợp Tailwind CSS.
 - [/] Hoàn thiện kiến trúc component (mục tiêu >= 15 components), custom hooks và responsive navigation (đã dựng scaffold thư mục + các khối nền ban đầu).
 - [/] Thiết lập state management global (Context API hoặc Redux Toolkit) (đã có `AuthContext` quản lý user/token, login/logout, khởi tạo state từ localStorage).
-- [/] Setup Axios Interceptors (Tự động thêm token Authorization) (đã có `axiosClient` + request/response interceptors cơ bản).
+- [/] Setup Axios Interceptors (Tự động thêm token Authorization) (đã có `axiosClient` + request/response interceptors + xử lý global `401` để clear localStorage và ép về `/login`, đồng thời loại trừ `/auth/login`/`/auth/register` để không reset form khi sai mật khẩu).
 - [ ] Tích hợp React Query (hoặc SWR) để client-side caching dữ liệu truy cập thường xuyên.
 - [ ] (Optional nhưng khuyến khích) Xử lý Refresh Token mechanism trong Axios Interceptor khi gặp 401.
-- [/] Setup Router (React Router DOM) cho nested routes + protected routes (đã có baseline routes: `/`, `/login`).
+- [/] Setup Router (React Router DOM) cho nested routes + protected routes (đã có routes `/`, `/login` + `ProtectedRoute` cho trang chủ).
 - [/] Tạo Layouts cơ sở (Navbar, Sidebar, Main Content, Footer) + lazy loading/skeleton (đã có `MainLayout` 3 cột + `Navbar` placeholder).
 
 ---
 
 ## Giai đoạn 5: Tích hợp Giao Diện và API (Frontend Integration)
 
-- [/] Màn hình Authentication (Đăng nhập, Đăng ký bằng React Hook Form) (đã hoàn thành thin slice login thực tế: gọi API đăng nhập, xử lý lỗi backend, lưu token/user vào localStorage, điều hướng vào `/`; còn thiếu register/logout UI).
+- [/] Màn hình Authentication (Đăng nhập, Đăng ký bằng React Hook Form) (đã hoàn thành thin slice login + logout + register: gọi API auth, xử lý lỗi backend, lưu token/user vào localStorage, điều hướng route auth, lifecycle token hết hạn qua interceptor; còn thiếu polish UI/UX và các case nâng cao).
 - [ ] Màn hình Home Feed (Hiển thị bài viết, stories, phân trang/scroll vô tận, search debounce).
 - [ ] Tích hợp tính năng Like/Comment thời gian thực (hoặc gọi API tối ưu).
 - [ ] Màn hình Profile cá nhân (Hiển thị info, chỉ số follow, danh sách bài viết).
 - [ ] Màn hình Notification.
-- [/] Form validation đầy đủ (register/login/post/profile), preview upload ảnh, error/loading UX (đã có validation cho login: `username required`, `password required + minLength 6`; còn thiếu các form khác và UX states đầy đủ).
+- [/] Form validation đầy đủ (register/login/post/profile), preview upload ảnh, error/loading UX (đã có validation cho login + register: required, email regex, password minLength, confirmPassword match; còn thiếu post/profile và UX states đầy đủ).
 - [ ] Áp dụng caching strategy (React Query/SWR) vào Home Feed, Profile, Notification để đáp ứng F4.
 
 ---
@@ -130,7 +130,7 @@
 - [/] Giai đoạn 1: Thiết Kế CSDL & EF Core: 80% (đã xong entities/relationships/migrations nền tảng; còn yêu cầu >= 3 migrations, seed data, database diagram).
 - [x] Giai đoạn 2: Backend Core & Security: 100% (đã hoàn thiện Identity/JWT/CORS/Auth + role seeding + role/policy authorization theo rubric B3).
 - [x] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 100% (đã hoàn thành Posts Step 1-5 + chuẩn response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes/Reports + dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + Users Thin Slice 1-2 + Friends Thin Slice 1-2 (repository + DTO + service + DI + controller) + Stories Thin Slice 1-2 (repository + DTO + service + DI + controller) + Notifications Thin Slice 1-2 (repository + DTO + service + DI + controller) + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller) + Reports Thin Slice 1-2 (repository + DTO + service + DI + controller); đã đạt mốc >= 20 endpoint (27 qua Swagger). Các hạng mục SignalR/Azure Blob được chuyển sang Giai đoạn 6 theo quyết định phạm vi).
-- [/] Giai đoạn 4: Frontend Setup: 60% (đã có Vite + React + TS + Tailwind + scaffold + `MainLayout`/`Navbar` + routing cơ bản + Context API auth + axios client/interceptors cơ bản + route guard; còn caching, lazy/skeleton và mở rộng kiến trúc component).
-- [/] Giai đoạn 5: Frontend Integration: 25% (đã có thin slice login end-to-end: form RHF + gọi API + xử lý lỗi backend + persist localStorage + bảo vệ route `/`; còn lại các màn hình nghiệp vụ và auth flows mở rộng).
+- [/] Giai đoạn 4: Frontend Setup: 65% (đã có Vite + React + TS + Tailwind + scaffold + `MainLayout`/`Navbar` + routing cơ bản + Context API auth + axios client/interceptors + global `401` handling + route guard; còn caching, lazy/skeleton và mở rộng kiến trúc component).
+- [/] Giai đoạn 5: Frontend Integration: 45% (đã có module auth frontend gần đầy đủ: login + register + logout + token persistence + auto-redirect khi token hết hạn + route guard; còn lại feed/profile/notification và mở rộng UX/auth cases).
 - [ ] Giai đoạn 6: Test & Cloud Deployment: 0%.
 - [ ] Giai đoạn 7: Hồ Sơ Nộp Bài: 0%.

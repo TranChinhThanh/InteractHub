@@ -1,4 +1,15 @@
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+
 function Navbar() {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
   return (
     <header className="fixed inset-x-0 top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-4">
@@ -19,10 +30,16 @@ function Navbar() {
           >
             notifications
           </span>
-          <div
-            className="h-9 w-9 rounded-full bg-gray-300"
-            aria-label="Avatar"
-          />
+          <span className="text-sm font-medium text-gray-700">
+            Xin chào, {user?.username}
+          </span>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="rounded-md bg-red-100 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-200"
+          >
+            Đăng xuất
+          </button>
         </div>
       </div>
     </header>
