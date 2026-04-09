@@ -1,19 +1,27 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import MainLayout from "./layouts/MainLayout";
+import LoginPage from "./pages/LoginPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
-  const token = localStorage.getItem('token');
-
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/" element={token ? <div><h1>Home - Feed</h1><button onClick={() => {localStorage.removeItem('token'); window.location.reload();}}>Logout</button></div> : <Navigate to="/login" />} />
-        {/* Placeholder for Profile */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <div className="rounded-xl bg-white p-6 shadow-sm">
+                  Home Page
+                </div>
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 

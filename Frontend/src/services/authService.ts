@@ -1,0 +1,18 @@
+import axiosClient from "../api/axiosClient";
+import type { ApiResponse, LoginResponseData } from "../types";
+
+export interface LoginRequestDto {
+  username: string;
+  password: string;
+}
+
+export const login = async (
+  payload: LoginRequestDto,
+): Promise<ApiResponse<LoginResponseData>> => {
+  const response = await axiosClient.post<ApiResponse<LoginResponseData>>(
+    "/auth/login",
+    payload,
+  );
+
+  return response.data;
+};
