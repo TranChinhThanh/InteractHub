@@ -317,3 +317,24 @@
   - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
   - `npm run build`: pass.
   - Smoke test report với 2 user mới tạo (`A report post của B`): `PASS` (`reportStatus=201`).
+
+## 10/04/2026 - Hoàn thành Stories UI Slice (Phase 5)
+
+- Mở rộng `src/types/index.ts`:
+  - Thêm `StoryResponseDto` và `CreateStoryDto` để đồng bộ contract Stories với backend.
+- Tạo `src/services/storyService.ts`:
+  - `getActiveStories()` gọi `GET /stories` và trả về `StoryResponseDto[]`.
+  - `createStory(payload)` gọi `POST /stories`.
+  - `deleteStory(id)` gọi `DELETE /stories/{id}`.
+- Tạo `src/components/StoriesBar.tsx`:
+  - Dùng `useQuery` query key `['stories']` để tải danh sách story active.
+  - Tích hợp nút tạo story bằng `window.prompt(...)` + mutation create story.
+  - Tích hợp xem chi tiết story (nội dung, ảnh, người đăng, ngày đăng) qua state `activeStory`.
+  - Cho phép xóa story của chính user đang đăng nhập.
+- Cập nhật `src/pages/HomePage.tsx`:
+  - Đưa `<StoriesBar />` lên trên cùng, ngay trước `<CreatePostForm />`.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - Story smoke test (create -> get -> delete -> verify) qua API: `PASS` (`createStatus=201`, `deleteStatus=200`).

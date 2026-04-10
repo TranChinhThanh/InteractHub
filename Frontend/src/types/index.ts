@@ -87,3 +87,19 @@ export interface FriendResponseDto {
 export interface CreateReportDto {
   reason: string;
 }
+
+export interface StoryResponseDto {
+  id: number;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  content: string;
+  imageUrl: string | null;
+  createdAt: string;
+  expiresAt: string;
+}
+
+export interface CreateStoryDto {
+  content: string;
+  imageUrl?: string;
+}

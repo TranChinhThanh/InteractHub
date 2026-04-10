@@ -1,6 +1,7 @@
 import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import CreatePostForm from "../components/CreatePostForm";
 import PostCard from "../components/PostCard";
+import StoriesBar from "../components/StoriesBar";
 import { useAuth } from "../contexts/AuthContext";
 import { getPosts } from "../services/postService";
 import type { PostResponseDto } from "../types";
@@ -36,6 +37,7 @@ function HomePage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
+        <StoriesBar />
         <CreatePostForm />
         <div className="rounded-xl bg-white p-6 shadow-sm">
           Đang tải danh sách bài viết...
@@ -50,6 +52,7 @@ function HomePage() {
 
     return (
       <div className="space-y-6">
+        <StoriesBar />
         <CreatePostForm />
         <div className="rounded-xl bg-red-50 p-6 text-red-600 shadow-sm">
           {message}
@@ -61,6 +64,7 @@ function HomePage() {
   if (!posts || posts.length === 0) {
     return (
       <div className="space-y-6">
+        <StoriesBar />
         <CreatePostForm />
         <div className="rounded-xl bg-white p-6 shadow-sm">
           Chưa có bài viết nào.
@@ -71,6 +75,7 @@ function HomePage() {
 
   return (
     <div className="space-y-6">
+      <StoriesBar />
       <CreatePostForm />
 
       <div className="space-y-4">
