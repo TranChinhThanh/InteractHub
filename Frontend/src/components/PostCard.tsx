@@ -1,5 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
+import { useState } from "react";
+import CommentSection from "./CommentSection";
 import type { ApiResponse, PostResponseDto } from "../types";
 import { togglePostLike } from "../services/likeService";
 import { deletePost } from "../services/postService";
@@ -43,6 +45,7 @@ const formatCreatedAt = (createdAt: string): string => {
 
 function PostCard({ post, currentUserId }: PostCardProps) {
   const queryClient = useQueryClient();
+  const [showComments, setShowComments] = useState(false);
   const initials = post.userName.trim().charAt(0).toUpperCase() || "U";
   const canDelete = post.userId === currentUserId;
 
@@ -169,8 +172,20 @@ function PostCard({ post, currentUserId }: PostCardProps) {
             ? "Đang xử lý..."
             : `Lượt thích (${post.likeCount})`}
         </button>
-        <span>{post.commentCount} bình luận</span>
+        <button
+          type="button"
+          onClick={() => setShowComments((previous) => !previous)}
+          className="hover:underline"
+        >
+          {post.commentCount} bình luận
+        </button>
       </footer>
+
+      {showComments ? (
+        <div className="mt-4 border-t border-gray-100 pt-4">
+          <CommentSection postId={post.id} currentUserId={currentUserId} />
+        </div>
+      ) : null}
     </article>
   );
 }

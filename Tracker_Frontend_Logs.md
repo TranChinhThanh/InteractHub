@@ -110,3 +110,29 @@
 - Chạy kiểm tra frontend sau hotfix:
   - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh mới).
   - `npm run build`: pass.
+
+## 10/04/2026 - Comment Integration Slice on PostCard (Phase 5)
+
+- Mở rộng `src/types/index.ts`:
+  - Thêm `CommentResponseDto` (`id`, `postId`, `userId`, `userName`, `userAvatarUrl`, `content`, `createdAt`).
+  - Thêm `CreateCommentDto` (`content`).
+- Tạo `src/services/commentService.ts` với 3 hàm:
+  - `getCommentsByPostId(postId)` gọi `GET /comments/post/{postId}` và bóc tách `response.data.data`.
+  - `createComment(postId, payload)` gọi `POST /comments/post/{postId}`.
+  - `deleteComment(commentId)` gọi `DELETE /comments/{commentId}`.
+- Tạo `src/components/CommentSection.tsx`:
+  - Dùng `useQuery` queryKey `['comments', postId]` để tải danh sách bình luận.
+  - Hiển thị avatar tròn nhỏ, `userName`, thời gian tạo và nội dung bình luận.
+  - Nút `Xóa` chỉ hiện với bình luận của user hiện tại.
+  - `useMutation` cho xóa bình luận: invalidate `['comments', postId]` và `['posts']`.
+  - Form bình luận bằng `react-hook-form`: input placeholder `Viết bình luận...`, nút `Gửi`, validation required + max 500 ký tự.
+  - `useMutation` cho tạo bình luận: reset input và invalidate `['comments', postId]` + `['posts']` khi thành công.
+- Cập nhật `src/components/PostCard.tsx`:
+  - Thêm state `showComments` để bật/tắt khu vực bình luận.
+  - Đổi text comment count thành button có `hover:underline`.
+  - Render `<CommentSection postId={post.id} currentUserId={currentUserId} />` trong khối `mt-4 border-t border-gray-100 pt-4` khi bật bình luận.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - E2E API flow test comments: PASS (`create post -> create comment -> list comment -> delete comment -> verify commentCount`).

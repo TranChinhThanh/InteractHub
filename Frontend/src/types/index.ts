@@ -37,3 +37,17 @@ export interface PostListResponseData {
   pageSize: number;
   totalCount: number;
 }
+
+export interface CommentResponseDto {
+  id: number;
+  postId: number;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  content: string;
+  createdAt: string;
+}
+
+export interface CreateCommentDto {
+  content: string;
+}
