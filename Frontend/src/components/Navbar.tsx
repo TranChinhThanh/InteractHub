@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 function Navbar() {
@@ -30,9 +30,18 @@ function Navbar() {
           >
             notifications
           </span>
-          <span className="text-sm font-medium text-gray-700">
-            Xin chào, {user?.username}
-          </span>
+          {user?.id ? (
+            <Link
+              to={`/profile/${user.id}`}
+              className="cursor-pointer text-sm font-medium text-gray-700 hover:underline"
+            >
+              Xin chào, {user?.username}
+            </Link>
+          ) : (
+            <span className="text-sm font-medium text-gray-700">
+              Xin chào, {user?.username}
+            </span>
+          )}
           <button
             type="button"
             onClick={handleLogout}

@@ -136,3 +136,30 @@
   - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
   - `npm run build`: pass.
   - E2E API flow test comments: PASS (`create post -> create comment -> list comment -> delete comment -> verify commentCount`).
+
+## 10/04/2026 - Profile Page + Edit Profile Slice (Phase 5)
+
+- Mở rộng `src/types/index.ts`:
+  - Thêm `UserProfileResponseDto` (`id`, `userName`, `email`, `bio`, `avatarUrl`, `dateJoined`, `role`).
+  - Thêm `UpdateProfileDto` (`bio`, `avatarUrl`).
+- Tạo `src/services/userService.ts` với 2 hàm:
+  - `getUserProfile(userId)` gọi `GET /users/${userId}` và bóc tách `response.data.data`.
+  - `updateProfile(userId, payload)` gọi `PUT /users/${userId}`.
+- Tạo `src/pages/ProfilePage.tsx`:
+  - Dùng `useParams` lấy `userId`.
+  - Dùng `useQuery` queryKey `['profile', userId]` để tải hồ sơ.
+  - Hiển thị giao diện profile gồm avatar lớn, userName, email, ngày tham gia, role và bio.
+  - Nếu là chính chủ (`userId === user.id`) thì hiển thị nút `Chỉnh sửa hồ sơ`.
+  - Khi bật chỉnh sửa: form bằng `react-hook-form` gồm `bio` và `avatarUrl`.
+  - Validation: `bio` max 500, `avatarUrl` validate URL regex cơ bản.
+  - Submit bằng `useMutation` gọi update profile, `onSuccess` đóng form và invalidate `['profile', userId]` + `['posts']`.
+- Cập nhật `src/App.tsx`:
+  - Thêm route protected `/profile/:userId` render `MainLayout + ProfilePage`.
+- Cập nhật `src/components/Navbar.tsx`:
+  - Bọc `Xin chào, {user?.username}` bằng `Link` điều hướng tới `/profile/${user?.id}`.
+- Cập nhật `src/components/PostCard.tsx`:
+  - Bọc avatar và tên tác giả bằng `Link` tới `/profile/${post.userId}`.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass.
+  - `npm run build`: pass.

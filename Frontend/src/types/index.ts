@@ -38,6 +38,21 @@ export interface PostListResponseData {
   totalCount: number;
 }
 
+export interface UserProfileResponseDto {
+  id: string;
+  userName: string;
+  email: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  dateJoined: string;
+  role: string;
+}
+
+export interface UpdateProfileDto {
+  bio: string | null;
+  avatarUrl: string | null;
+}
+
 export interface CommentResponseDto {
   id: number;
   postId: number;

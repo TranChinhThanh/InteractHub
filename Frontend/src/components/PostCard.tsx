@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import CommentSection from "./CommentSection";
 import type { ApiResponse, PostResponseDto } from "../types";
 import { togglePostLike } from "../services/likeService";
@@ -118,20 +119,30 @@ function PostCard({ post, currentUserId }: PostCardProps) {
       ) : null}
 
       <header className="mb-3 flex items-center gap-3 pr-20">
-        {post.userAvatarUrl ? (
-          <img
-            src={post.userAvatarUrl}
-            alt={post.userName}
-            className="h-10 w-10 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
-            {initials}
-          </div>
-        )}
+        <Link
+          to={`/profile/${post.userId}`}
+          className="cursor-pointer hover:underline"
+        >
+          {post.userAvatarUrl ? (
+            <img
+              src={post.userAvatarUrl}
+              alt={post.userName}
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
+              {initials}
+            </div>
+          )}
+        </Link>
 
         <div>
-          <p className="font-semibold text-gray-800">{post.userName}</p>
+          <Link
+            to={`/profile/${post.userId}`}
+            className="cursor-pointer font-semibold text-gray-800 hover:underline"
+          >
+            {post.userName}
+          </Link>
           <p className="text-sm text-gray-500">
             {formatCreatedAt(post.createdAt)}
           </p>

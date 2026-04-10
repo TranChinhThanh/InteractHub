@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -17,6 +18,16 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <HomePage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/:userId"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <ProfilePage />
               </MainLayout>
             </ProtectedRoute>
           }
