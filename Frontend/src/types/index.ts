@@ -83,3 +83,7 @@ export interface FriendResponseDto {
   avatarUrl: string | null;
   bio: string | null;
 }
+
+export interface CreateReportDto {
+  reason: string;
+}

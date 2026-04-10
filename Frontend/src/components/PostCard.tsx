@@ -10,6 +10,7 @@ import CommentSection from "./CommentSection";
 import type { ApiResponse, PostResponseDto } from "../types";
 import { togglePostLike } from "../services/likeService";
 import { deletePost } from "../services/postService";
+import { reportPost } from "../services/reportService";
 
 interface PostCardProps {
   post: PostResponseDto;
@@ -67,6 +68,7 @@ function PostCard({ post, currentUserId }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const initials = post.userName.trim().charAt(0).toUpperCase() || "U";
   const canDelete = post.userId === currentUserId;
+  const canReport = currentUserId !== post.userId;
 
   const deleteMutation = useMutation({
     mutationFn: (postId: number) => deletePost(postId),
@@ -119,6 +121,19 @@ function PostCard({ post, currentUserId }: PostCardProps) {
     },
   });
 
+  const reportMutation = useMutation({
+    mutationFn: ({ postId, reason }: { postId: number; reason: string }) =>
+      reportPost(postId, { reason }),
+    onSuccess: () => {
+      window.alert(
+        "Đã gửi báo cáo vi phạm thành công. Quản trị viên sẽ xem xét.",
+      );
+    },
+    onError: (error) => {
+      window.alert(getErrorMessage(error, "Gửi báo cáo thất bại."));
+    },
+  });
+
   const handleDelete = () => {
     const confirmed = window.confirm("Bạn có chắc muốn xóa bài viết này?");
 
@@ -133,6 +148,21 @@ function PostCard({ post, currentUserId }: PostCardProps) {
     likeMutation.mutate();
   };
 
+  const handleReport = () => {
+    const reason = window.prompt(
+      "Nhập lý do báo cáo bài viết này (tối đa 500 ký tự):",
+    );
+
+    if (!reason || reason.trim().length === 0) {
+      return;
+    }
+
+    reportMutation.mutate({
+      postId: post.id,
+      reason: reason.trim(),
+    });
+  };
+
   return (
     <article className="relative rounded-xl bg-white p-5 shadow-sm">
       {canDelete ? (
@@ -143,6 +173,17 @@ function PostCard({ post, currentUserId }: PostCardProps) {
           className="absolute right-4 top-4 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
         >
           {deleteMutation.isPending ? "Đang xóa..." : "Xóa"}
+        </button>
+      ) : null}
+
+      {!canDelete && canReport ? (
+        <button
+          type="button"
+          onClick={handleReport}
+          disabled={reportMutation.isPending}
+          className="absolute right-4 top-4 rounded-md bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:bg-amber-50"
+        >
+          {reportMutation.isPending ? "Đang gửi..." : "Báo cáo"}
         </button>
       ) : null}
 

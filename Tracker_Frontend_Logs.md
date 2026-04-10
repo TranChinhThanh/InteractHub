@@ -298,3 +298,22 @@
   - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
   - `npm run build`: pass.
   - Smoke test follow -> unfollow với 2 user mới tạo qua API: `PASS` (follower count thay đổi đúng 0 -> 1 -> 0).
+
+## 10/04/2026 - Hoàn thành Report Post Slice (Phase 5)
+
+- Mở rộng `src/types/index.ts`:
+  - Thêm `CreateReportDto` gồm field `reason`.
+- Tạo `src/services/reportService.ts`:
+  - Thêm hàm `reportPost(postId, payload)` gọi `POST /reports/post/{postId}`.
+  - Trả về `ApiResponse<any>` theo contract frontend hiện tại.
+- Cập nhật `src/components/PostCard.tsx`:
+  - Tích hợp `useMutation` cho report post.
+  - Thêm biến `canReport = currentUserId !== post.userId`.
+  - Hiển thị nút `Báo cáo` ở góc phải cho bài viết của user khác.
+  - Khi bấm: mở `window.prompt(...)`, nếu có lý do hợp lệ thì gửi report.
+  - `onSuccess` hiển thị thông báo: `Đã gửi báo cáo vi phạm thành công. Quản trị viên sẽ xem xét.`
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - Smoke test report với 2 user mới tạo (`A report post của B`): `PASS` (`reportStatus=201`).
