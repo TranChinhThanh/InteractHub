@@ -206,3 +206,55 @@
 - Kết quả kiểm tra:
   - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
   - `npm run build`: pass.
+
+## 10/04/2026 - React Router Lazy Loading & Suspense Slice (Phase 4/5)
+
+- Tạo `src/components/PageLoader.tsx`:
+  - Fallback UI đơn giản khi đang tải route lazy gồm spinner `animate-spin` và text `Đang tải...`.
+- Cập nhật `src/App.tsx`:
+  - Chuyển các page imports sang `React.lazy` cho `LoginPage`, `RegisterPage`, `HomePage`, `ProfilePage`, `NotificationsPage`.
+  - Import `Suspense` và bọc toàn bộ khu vực `Routes` với `fallback={<PageLoader />}`.
+  - Giữ nguyên cấu trúc `ProtectedRoute` + `MainLayout`.
+- Kết quả tối ưu:
+  - Route pages được tách thành các chunk riêng trong build output thay vì dồn một bundle chính.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+
+## 10/04/2026 - Custom Hook useDebounce & Navbar Search Routing (Phase 5)
+
+- Tạo `src/hooks/useDebounce.ts`:
+  - Viết custom hook generic `useDebounce<T>(value, delay)` bằng `useState` + `useEffect` với `setTimeout`/`clearTimeout`.
+  - Hook trả về giá trị `debouncedValue` sau đúng khoảng delay cấu hình.
+- Tạo `src/pages/SearchPage.tsx`:
+  - Dùng `useSearchParams` đọc query param `q`.
+  - Hiển thị heading `Kết quả tìm kiếm cho: "{query}"`.
+  - Thêm block text tạm: `Tính năng tìm kiếm đang được cập nhật dữ liệu từ Backend...` để chứng minh luồng debounce + routing hoạt động.
+- Cập nhật `src/components/Navbar.tsx`:
+  - Thêm state `searchTerm` cho input `Tìm kiếm...` (controlled input).
+  - Nối custom hook `const debouncedSearch = useDebounce(searchTerm, 500)`.
+  - Dùng `useEffect` theo dõi `debouncedSearch`; khi có nội dung hợp lệ thì `navigate(`/search?q=${encodeURIComponent(...)}`)`.
+- Cập nhật `src/App.tsx`:
+  - Thêm lazy import `SearchPage` và route protected `/search` bọc trong `MainLayout`.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+
+## 10/04/2026 - Full-Stack Search Users Slice (Phase 5)
+
+- Cập nhật `src/services/userService.ts`:
+  - Thêm hàm `searchUsers(query)` gọi `GET /users/search?q={query}`.
+  - Trả về mảng `UserProfileResponseDto[]` và fallback rỗng khi không có data.
+- Cập nhật `src/pages/SearchPage.tsx`:
+  - Dùng `useQuery` với `queryKey: ['search', query]` và `queryFn: () => searchUsers(query)`.
+  - Áp dụng `enabled: !!query` để không gọi API khi query rỗng.
+  - Xóa text placeholder cũ và thay bằng UI kết quả thật:
+    - Hiển thị danh sách user (avatar + username).
+    - Dùng `Link` điều hướng sang `/profile/{userId}` khi click avatar/tên.
+  - Bổ sung đầy đủ trạng thái: loading, error, empty result.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.

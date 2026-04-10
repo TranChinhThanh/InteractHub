@@ -19,6 +19,13 @@ public class UsersController : ControllerBase
         _usersService = usersService;
     }
 
+    [HttpGet("search")]
+    public async Task<IActionResult> Search([FromQuery] string q)
+    {
+        var users = await _usersService.SearchUsersAsync(q);
+        return Ok(ApiResponse.Success(users));
+    }
+
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetById(string userId)
     {

@@ -6,4 +6,5 @@ public interface IUsersService
 {
     Task<UserProfileResponseDto?> GetUserProfileAsync(string userId);
     Task<UserProfileResponseDto?> UpdateProfileAsync(string userId, UpdateProfileDto dto);
+    Task<IEnumerable<UserProfileResponseDto>> SearchUsersAsync(string query);
 }

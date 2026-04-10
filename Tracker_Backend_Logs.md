@@ -1077,3 +1077,24 @@
   - Chốt DONE toàn bộ Giai đoạn 3 (RESTful APIs) -> `100%`.
   - Chuyển hạng mục `SignalR` và `Azure Blob upload service` xuống Giai đoạn 6 theo quyết định mới.
   - Cập nhật mốc endpoint runtime từ `26` lên `27` sau khi thêm Reports endpoint.
+
+---
+
+## 10/04/2026 - Full-Stack Search Users Slice (Phase 5)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/Interfaces/IUsersService.cs`:
+  - Thêm contract `Task<IEnumerable<UserProfileResponseDto>> SearchUsersAsync(string query);`.
+- [x] Cập nhật `Backend/Services/UsersService.cs`:
+  - Triển khai `SearchUsersAsync` để lọc user theo `UserName` chứa chuỗi query (không phân biệt hoa thường).
+  - Giới hạn kết quả bằng `.Take(10)`.
+  - Mapping kết quả về `UserProfileResponseDto`.
+- [x] Cập nhật `Backend/Controllers/UsersController.cs`:
+  - Thêm endpoint `GET /api/users/search?q=...`.
+  - Trả dữ liệu theo chuẩn `ApiResponse.Success(...)`.
+
+### Kết quả xác minh
+
+- [x] `dotnet build` backend: thành công sau khi thêm Users search endpoint.
+- [x] API contract đã sẵn sàng cho frontend gọi search với query param `q`.

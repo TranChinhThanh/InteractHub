@@ -1,9 +1,21 @@
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useDebounce } from "../hooks/useDebounce";
 
 function Navbar() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  useEffect(() => {
+    const normalizedSearch = debouncedSearch.trim();
+
+    if (normalizedSearch.length > 0) {
+      navigate(`/search?q=${encodeURIComponent(normalizedSearch)}`);
+    }
+  }, [debouncedSearch, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -20,6 +32,8 @@ function Navbar() {
         <input
           type="text"
           placeholder="Tìm kiếm..."
+          value={searchTerm}
+          onChange={(event) => setSearchTerm(event.target.value)}
           className="w-full max-w-md rounded-full border border-gray-300 bg-gray-50 px-4 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 focus:bg-white"
         />
 

@@ -3,6 +3,7 @@ namespace InteractHub.Api.Services;
 using InteractHub.Api.DTOs.Users;
 using InteractHub.Api.Models;
 using InteractHub.Api.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
 public sealed class UsersService : IUsersService
@@ -44,6 +45,31 @@ public sealed class UsersService : IUsersService
         }
 
         return await MapToUserProfileAsync(user);
+    }
+
+    public async Task<IEnumerable<UserProfileResponseDto>> SearchUsersAsync(string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return Enumerable.Empty<UserProfileResponseDto>();
+        }
+
+        var normalizedQuery = query.Trim();
+        var loweredQuery = normalizedQuery.ToLower();
+
+        var users = await _userManager.Users
+            .Where(user => (user.UserName ?? string.Empty).ToLower().Contains(loweredQuery))
+            .OrderBy(user => user.UserName)
+            .Take(10)
+            .ToListAsync();
+
+        var results = new List<UserProfileResponseDto>(users.Count);
+        foreach (var user in users)
+        {
+            results.Add(await MapToUserProfileAsync(user));
+        }
+
+        return results;
     }
 
     private async Task<UserProfileResponseDto> MapToUserProfileAsync(ApplicationUser user)

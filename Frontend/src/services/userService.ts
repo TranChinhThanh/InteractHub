@@ -15,6 +15,16 @@ export const getUserProfile = async (
   return response.data.data;
 };
 
+export const searchUsers = async (
+  query: string,
+): Promise<UserProfileResponseDto[]> => {
+  const response = await axiosClient.get<ApiResponse<UserProfileResponseDto[]>>(
+    `/users/search?q=${encodeURIComponent(query)}`,
+  );
+
+  return response.data.data ?? [];
+};
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export const updateProfile = async (
   userId: string,
