@@ -19,6 +19,8 @@ public class PostRepository : GenericRepository<Post>, IPostRepository
     {
         return await _context.Posts
             .Include(p => p.User)
+            .Include(p => p.Comments)
+            .Include(p => p.Likes)
             .Include(p => p.Hashtags)
             .OrderByDescending(p => p.CreatedAt)
             .ToListAsync();
@@ -28,6 +30,8 @@ public class PostRepository : GenericRepository<Post>, IPostRepository
     {
         return await _context.Posts
             .Include(p => p.User)
+            .Include(p => p.Comments)
+            .Include(p => p.Likes)
             .Include(p => p.Hashtags)
             .FirstOrDefaultAsync(p => p.Id == id);
     }

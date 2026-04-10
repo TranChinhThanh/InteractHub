@@ -63,7 +63,7 @@ namespace InteractHub.Api.Data
             // Like can target Post or Comment and also references User
             builder.Entity<Like>()
                 .HasOne(l => l.Post)
-                .WithMany()
+                .WithMany(p => p.Likes)
                 .HasForeignKey(l => l.PostId)
                 .OnDelete(DeleteBehavior.NoAction);
 

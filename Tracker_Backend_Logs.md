@@ -358,6 +358,45 @@
 - [x] Chưa chỉnh DI trong `Program.cs` cho `IPostRepository`.
 - [x] Chưa thay đổi logic nghiệp vụ/controller ở bước này.
 
+---
+
+## Hotfix Delete Post 500 + Like Count Sync (09/04/2026)
+
+### Vấn đề phát hiện
+
+- [x] Xóa post bị `500 Internal Server Error` khi post có dữ liệu liên quan (`Like`, `Comment`, `PostReport`) do hệ thống đang dùng `DeleteBehavior.NoAction` để tránh multiple cascade paths.
+- [x] Feed trả về post chưa có trường đếm (`likeCount`, `commentCount`) và thông tin user phẳng cho frontend, gây cảm giác thao tác like không có thay đổi.
+
+### Việc đã thực thi
+
+- [x] Mở rộng DTO `PostResponseDto` thêm `UserId`, `UserName`, `UserAvatarUrl`, `LikeCount`, `CommentCount`.
+- [x] Cập nhật `PostRepository` để eager-load `Comments` và `Likes` cùng `User` + `Hashtags`.
+- [x] Cập nhật `PostService.ToPostResponse(...)` để map đủ dữ liệu mới và đồng bộ với contract frontend.
+- [x] Bổ sung method dọn dữ liệu theo post ở repository:
+  - `ICommentRepository`/`CommentRepository`: `GetCommentIdsByPostIdAsync`, `DeleteByPostIdAsync`.
+  - `ILikeRepository`/`LikeRepository`: `DeleteByPostIdAsync`, `DeleteByCommentIdsAsync`.
+  - `IReportRepository`/`ReportRepository`: `DeleteByPostIdAsync`.
+- [x] Cập nhật `PostService.DeleteAsync(...)` theo thứ tự an toàn:
+  1. Lấy danh sách `commentIds` của post.
+  2. Xóa likes của post.
+  3. Xóa likes của comments thuộc post.
+  4. Xóa reports của post.
+  5. Xóa comments của post.
+  6. Xóa post.
+  7. `SaveChangesAsync()` một lần.
+
+### Kết quả kiểm thử
+
+- [x] `dotnet build` backend: thành công.
+- [x] E2E API test tự động (Node script):
+  - Đăng ký + login user test.
+  - Tạo 3 post mới.
+  - Like post + tạo comment + like comment.
+  - Kiểm tra feed trả `likeCount/commentCount` đúng.
+  - Xóa toàn bộ 3 post vừa tạo.
+  - Verify `GET /api/posts/{id}` sau xóa trả `404`.
+- [x] Kết quả script: `E2E_DELETE_LIKE_TEST: PASS` (IDs: `18, 19, 20`).
+
 ### Ghi chú kỹ thuật quan trọng
 
 - [x] Schema hiện tại dùng `Post.Id` kiểu `int`, nên contract method dùng `int id` để đồng bộ model thực tế (không dùng `Guid`).

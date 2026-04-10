@@ -28,4 +28,37 @@ public sealed class LikeRepository : GenericRepository<Like>, ILikeRepository
             .AsNoTracking()
             .FirstOrDefaultAsync(like => like.CommentId == commentId && like.UserId == userId);
     }
+
+    public async Task DeleteByPostIdAsync(int postId)
+    {
+        var likes = await _context.Likes
+            .Where(like => like.PostId == postId)
+            .ToListAsync();
+
+        if (likes.Count == 0)
+        {
+            return;
+        }
+
+        _context.Likes.RemoveRange(likes);
+    }
+
+    public async Task DeleteByCommentIdsAsync(IReadOnlyCollection<int> commentIds)
+    {
+        if (commentIds.Count == 0)
+        {
+            return;
+        }
+
+        var likes = await _context.Likes
+            .Where(like => like.CommentId.HasValue && commentIds.Contains(like.CommentId.Value))
+            .ToListAsync();
+
+        if (likes.Count == 0)
+        {
+            return;
+        }
+
+        _context.Likes.RemoveRange(likes);
+    }
 }

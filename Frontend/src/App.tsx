@@ -3,14 +3,7 @@ import MainLayout from "./layouts/MainLayout";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-function HomeTest() {
-  return (
-    <div className="rounded-xl bg-white p-6 shadow-sm">
-      Bạn đã đăng nhập thành công vào trang chủ. Token của bạn đã được lưu lại!
-    </div>
-  );
-}
+import HomePage from "./pages/HomePage";
 
 function App() {
   return (
@@ -23,7 +16,7 @@ function App() {
           element={
             <ProtectedRoute>
               <MainLayout>
-                <HomeTest />
+                <HomePage />
               </MainLayout>
             </ProtectedRoute>
           }

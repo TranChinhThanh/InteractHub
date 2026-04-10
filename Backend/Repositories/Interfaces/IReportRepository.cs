@@ -4,4 +4,5 @@ using InteractHub.Api.Models;
 
 public interface IReportRepository : IGenericRepository<PostReport>
 {
+	Task DeleteByPostIdAsync(int postId);
 }

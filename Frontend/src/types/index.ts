@@ -17,3 +17,23 @@ export interface RegisterRequestDto {
   username: string;
   password: string;
 }
+
+export interface PostResponseDto {
+  id: number;
+  userId: string;
+  userName: string;
+  userAvatarUrl: string | null;
+  content: string;
+  imageUrl: string | null;
+  createdAt: string;
+  likeCount: number;
+  commentCount: number;
+  hashtags: string[];
+}
+
+export interface PostListResponseData {
+  items: PostResponseDto[];
+  pageNumber: number;
+  pageSize: number;
+  totalCount: number;
+}

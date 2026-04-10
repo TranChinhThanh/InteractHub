@@ -24,4 +24,27 @@ public sealed class CommentRepository : GenericRepository<Comment>, ICommentRepo
             .OrderByDescending(comment => comment.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<IReadOnlyList<int>> GetCommentIdsByPostIdAsync(int postId)
+    {
+        return await _context.Comments
+            .AsNoTracking()
+            .Where(comment => comment.PostId == postId)
+            .Select(comment => comment.Id)
+            .ToListAsync();
+    }
+
+    public async Task DeleteByPostIdAsync(int postId)
+    {
+        var comments = await _context.Comments
+            .Where(comment => comment.PostId == postId)
+            .ToListAsync();
+
+        if (comments.Count == 0)
+        {
+            return;
+        }
+
+        _context.Comments.RemoveRange(comments);
+    }
 }

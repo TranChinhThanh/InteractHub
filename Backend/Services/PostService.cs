@@ -20,15 +20,24 @@ public sealed class PostService : IPostService
     };
 
     private readonly IPostRepository _postRepository;
+    private readonly ICommentRepository _commentRepository;
+    private readonly ILikeRepository _likeRepository;
+    private readonly IReportRepository _reportRepository;
     private readonly IGenericRepository<Hashtag> _hashtagRepository;
     private readonly IWebHostEnvironment _environment;
 
     public PostService(
         IPostRepository postRepository,
+        ICommentRepository commentRepository,
+        ILikeRepository likeRepository,
+        IReportRepository reportRepository,
         IGenericRepository<Hashtag> hashtagRepository,
         IWebHostEnvironment environment)
     {
         _postRepository = postRepository;
+        _commentRepository = commentRepository;
+        _likeRepository = likeRepository;
+        _reportRepository = reportRepository;
         _hashtagRepository = hashtagRepository;
         _environment = environment;
     }
@@ -128,6 +137,13 @@ public sealed class PostService : IPostService
             return false;
         }
 
+        var commentIds = await _commentRepository.GetCommentIdsByPostIdAsync(postId);
+
+        await _likeRepository.DeleteByPostIdAsync(postId);
+        await _likeRepository.DeleteByCommentIdsAsync(commentIds);
+        await _reportRepository.DeleteByPostIdAsync(postId);
+        await _commentRepository.DeleteByPostIdAsync(postId);
+
         _postRepository.Delete(post);
         await _postRepository.SaveChangesAsync();
         return true;
@@ -138,9 +154,14 @@ public sealed class PostService : IPostService
         return new PostResponseDto
         {
             Id = post.Id,
+            UserId = post.UserId,
+            UserName = user?.UserName ?? string.Empty,
+            UserAvatarUrl = user?.ProfilePictureUrl,
             Content = post.Content,
             ImageUrl = post.ImageUrl,
             CreatedAt = post.CreatedAt,
+            LikeCount = post.Likes.Count,
+            CommentCount = post.Comments.Count,
             Hashtags = post.Hashtags
                 .Select(h => $"#{h.Name}")
                 .OrderBy(name => name)
