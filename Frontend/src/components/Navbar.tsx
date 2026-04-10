@@ -24,12 +24,15 @@ function Navbar() {
         />
 
         <div className="flex shrink-0 items-center gap-3">
-          <span
-            className="material-symbols-outlined text-gray-700"
-            aria-label="Thông báo"
+          <Link
+            to="/notifications"
+            className="flex cursor-pointer items-center gap-1 text-sm font-medium text-gray-700 transition hover:text-blue-700"
           >
-            notifications
-          </span>
+            <span className="material-symbols-outlined" aria-hidden="true">
+              notifications
+            </span>
+            <span>Thông báo</span>
+          </Link>
           {user?.id ? (
             <Link
               to={`/profile/${user.id}`}

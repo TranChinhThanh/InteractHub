@@ -5,6 +5,7 @@ import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/ProfilePage";
+import NotificationsPage from "./pages/NotificationsPage";
 
 function App() {
   return (
@@ -28,6 +29,16 @@ function App() {
             <ProtectedRoute>
               <MainLayout>
                 <ProfilePage />
+              </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/notifications"
+          element={
+            <ProtectedRoute>
+              <MainLayout>
+                <NotificationsPage />
               </MainLayout>
             </ProtectedRoute>
           }

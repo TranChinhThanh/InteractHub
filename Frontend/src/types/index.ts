@@ -53,6 +53,16 @@ export interface UpdateProfileDto {
   avatarUrl: string | null;
 }
 
+export interface NotificationResponseDto {
+  id: number;
+  userId: string;
+  type: string;
+  content: string;
+  isRead: boolean;
+  relatedEntityId?: number;
+  createdAt: string;
+}
+
 export interface CommentResponseDto {
   id: number;
   postId: number;

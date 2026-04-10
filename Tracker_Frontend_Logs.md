@@ -163,3 +163,46 @@
 - Kết quả kiểm tra:
   - `npm run lint`: pass.
   - `npm run build`: pass.
+
+## 10/04/2026 - Home Feed Load More Pagination Slice (Phase 5)
+
+- Cập nhật `src/pages/HomePage.tsx`:
+  - Chuyển từ `useQuery` sang `useInfiniteQuery` (React Query v5).
+  - Cấu hình `queryKey: ['posts']`, `initialPageParam: 1`.
+  - `queryFn: ({ pageParam }) => getPosts(pageParam, 10)`.
+  - `getNextPageParam`: trả page tiếp theo khi `lastPage.length === 10`, ngược lại trả `undefined`.
+  - Gộp dữ liệu feed bằng `data?.pages.flatMap((page) => page) ?? []`.
+  - Thêm nút `Tải thêm bài viết` dưới danh sách post:
+    - `onClick={() => fetchNextPage()}`.
+    - Disable + đổi text `Đang tải...` khi `isFetchingNextPage`.
+    - Ẩn nút khi `!hasNextPage`.
+- Cập nhật `src/components/PostCard.tsx`:
+  - Điều chỉnh `queryClient.setQueriesData` để tương thích với `InfiniteData<PostResponseDto[]>` của query key `['posts']`.
+  - Giữ nguyên cơ chế invalidate `['posts']` sau delete/like để đồng bộ dữ liệu server.
+- Giữ nguyên `CreatePostForm` với `invalidateQueries({ queryKey: ['posts'] })` vì đã tương thích với infinite query key hiện tại.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+
+## 10/04/2026 - Notification Module Slice (Phase 5)
+
+- Mở rộng `src/types/index.ts`:
+  - Thêm `NotificationResponseDto` (`id`, `userId`, `type`, `content`, `isRead`, `relatedEntityId`, `createdAt`).
+- Tạo `src/services/notificationService.ts`:
+  - `getNotifications()` gọi `GET /notifications`, bóc tách `response.data.data`.
+  - `markAsRead(id)` gọi `PUT /notifications/${id}/read`.
+- Tạo `src/pages/NotificationsPage.tsx`:
+  - Dùng `useQuery` queryKey `['notifications']` để tải danh sách thông báo.
+  - Hiển thị list với unread `bg-blue-50`, read `bg-white`.
+  - Click thông báo chưa đọc để gọi `useMutation` mark-as-read.
+  - `onSuccess` invalidate `['notifications']` để refresh.
+  - Có đầy đủ loading/error/empty state.
+- Cập nhật `src/App.tsx`:
+  - Thêm route protected `/notifications` render `MainLayout + NotificationsPage`.
+- Cập nhật `src/components/Navbar.tsx`:
+  - Đổi placeholder thông báo sang `Link to="/notifications"`.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.

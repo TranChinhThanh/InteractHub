@@ -1,4 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type InfiniteData,
+} from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -44,6 +48,20 @@ const formatCreatedAt = (createdAt: string): string => {
   });
 };
 
+const mapInfinitePosts = (
+  oldData: InfiniteData<PostResponseDto[], number> | undefined,
+  mapper: (post: PostResponseDto) => PostResponseDto,
+): InfiniteData<PostResponseDto[], number> | undefined => {
+  if (!oldData) {
+    return oldData;
+  }
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page) => page.map(mapper)),
+  };
+};
+
 function PostCard({ post, currentUserId }: PostCardProps) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
@@ -54,10 +72,20 @@ function PostCard({ post, currentUserId }: PostCardProps) {
     mutationFn: (postId: number) => deletePost(postId),
     onSuccess: () => {
       window.alert("Đã xóa");
-      queryClient.setQueriesData<PostResponseDto[]>(
+      queryClient.setQueriesData<InfiniteData<PostResponseDto[], number>>(
         { queryKey: ["posts"] },
-        (oldPosts) =>
-          oldPosts?.filter((item) => item.id !== post.id) ?? oldPosts,
+        (oldData) => {
+          if (!oldData) {
+            return oldData;
+          }
+
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) =>
+              page.filter((item) => item.id !== post.id),
+            ),
+          };
+        },
       );
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
@@ -71,17 +99,17 @@ function PostCard({ post, currentUserId }: PostCardProps) {
     onSuccess: (response) => {
       const delta = response.data.isLiked ? 1 : -1;
 
-      queryClient.setQueriesData<PostResponseDto[]>(
+      queryClient.setQueriesData<InfiniteData<PostResponseDto[], number>>(
         { queryKey: ["posts"] },
-        (oldPosts) =>
-          oldPosts?.map((item) =>
+        (oldData) =>
+          mapInfinitePosts(oldData, (item) =>
             item.id === post.id
               ? {
                   ...item,
                   likeCount: Math.max(0, item.likeCount + delta),
                 }
               : item,
-          ) ?? oldPosts,
+          ),
       );
 
       queryClient.invalidateQueries({ queryKey: ["posts"] });

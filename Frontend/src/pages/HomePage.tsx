@@ -1,22 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import CreatePostForm from "../components/CreatePostForm";
 import PostCard from "../components/PostCard";
 import { useAuth } from "../contexts/AuthContext";
 import { getPosts } from "../services/postService";
+import type { PostResponseDto } from "../types";
 
 function HomePage() {
   const { user } = useAuth();
 
   const {
-    data: posts,
+    data,
     isLoading,
     isError,
     error,
-  } = useQuery({
-    queryKey: ["posts", 1, 10],
-    queryFn: () => getPosts(1, 10),
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<
+    PostResponseDto[],
+    Error,
+    InfiniteData<PostResponseDto[], number>,
+    string[],
+    number
+  >({
+    queryKey: ["posts"],
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => getPosts(pageParam, 10),
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length === 10 ? allPages.length + 1 : undefined,
     staleTime: 1000 * 60,
   });
+
+  const posts = data?.pages.flatMap((page) => page) ?? [];
 
   if (isLoading) {
     return (
@@ -62,6 +77,19 @@ function HomePage() {
         {posts.map((post) => (
           <PostCard key={post.id} post={post} currentUserId={user?.id} />
         ))}
+
+        {hasNextPage ? (
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => fetchNextPage()}
+              disabled={isFetchingNextPage}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:border-blue-500 hover:text-blue-700 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+            >
+              {isFetchingNextPage ? "Đang tải..." : "Tải thêm bài viết"}
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );
