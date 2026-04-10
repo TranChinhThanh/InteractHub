@@ -4,6 +4,12 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  followUser,
+  getFollowers,
+  getFollowing,
+  unfollowUser,
+} from "../services/friendService";
 import { getUserProfile, updateProfile } from "../services/userService";
 import type { ApiResponse, UpdateProfileDto } from "../types";
 
@@ -73,6 +79,20 @@ function ProfilePage() {
     staleTime: 1000 * 60,
   });
 
+  const { data: followers = [] } = useQuery({
+    queryKey: ["followers", userId],
+    queryFn: () => getFollowers(userId as string),
+    enabled: Boolean(userId),
+    staleTime: 1000 * 60,
+  });
+
+  const { data: following = [] } = useQuery({
+    queryKey: ["following", userId],
+    queryFn: () => getFollowing(userId as string),
+    enabled: Boolean(userId),
+    staleTime: 1000 * 60,
+  });
+
   useEffect(() => {
     if (!profile) {
       return;
@@ -97,7 +117,35 @@ function ProfilePage() {
     },
   });
 
+  const followMutation = useMutation({
+    mutationFn: () => followUser(userId as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["followers", userId] });
+      queryClient.invalidateQueries({ queryKey: ["following", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["followers", user?.id] });
+    },
+    onError: (mutationError) => {
+      window.alert(getErrorMessage(mutationError, "Theo dõi thất bại."));
+    },
+  });
+
+  const unfollowMutation = useMutation({
+    mutationFn: () => unfollowUser(userId as string),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["followers", userId] });
+      queryClient.invalidateQueries({ queryKey: ["following", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["followers", user?.id] });
+    },
+    onError: (mutationError) => {
+      window.alert(getErrorMessage(mutationError, "Hủy theo dõi thất bại."));
+    },
+  });
+
   const canEdit = Boolean(userId && user && user.id === userId);
+  const canFollow = Boolean(userId && user && user.id !== userId);
+  const isFollowing = Boolean(
+    user?.id && followers.some((follower) => follower.userId === user.id),
+  );
 
   const onSubmit = (values: ProfileFormValues) => {
     const nextBio = values.bio.trim();
@@ -164,6 +212,28 @@ function ProfilePage() {
           {profile.userName}
         </h1>
         <p className="mt-1 text-sm text-gray-500">{profile.email}</p>
+
+        {canFollow ? (
+          <button
+            type="button"
+            onClick={() => {
+              if (isFollowing) {
+                unfollowMutation.mutate();
+                return;
+              }
+
+              followMutation.mutate();
+            }}
+            disabled={followMutation.isPending || unfollowMutation.isPending}
+            className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
+          >
+            {followMutation.isPending || unfollowMutation.isPending
+              ? "Đang xử lý..."
+              : isFollowing
+                ? "Hủy theo dõi"
+                : "Theo dõi"}
+          </button>
+        ) : null}
       </header>
 
       <section className="mt-6 space-y-3 text-sm text-gray-700">
@@ -181,6 +251,17 @@ function ProfilePage() {
             ? profile.bio
             : "Chưa có mô tả."}
         </p>
+
+        <div className="flex items-center gap-4 text-sm text-gray-700">
+          <p>
+            <span className="font-semibold text-gray-800">Follower:</span>{" "}
+            {followers.length}
+          </p>
+          <p>
+            <span className="font-semibold text-gray-800">Following:</span>{" "}
+            {following.length}
+          </p>
+        </div>
       </section>
 
       {canEdit ? (

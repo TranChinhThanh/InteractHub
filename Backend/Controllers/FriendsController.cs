@@ -47,6 +47,34 @@ public class FriendsController : ControllerBase
         }
     }
 
+    [HttpDelete("{followeeId}")]
+    public async Task<IActionResult> Unfollow(string followeeId)
+    {
+        var followerId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrWhiteSpace(followerId))
+        {
+            return Unauthorized(ApiResponse.Failure("Invalid token."));
+        }
+
+        try
+        {
+            await _friendsService.UnfollowAsync(followerId, followeeId);
+            return Ok(ApiResponse.Success(new { message = "Unfollowed successfully." }));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse.Failure(ex.Message));
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(ApiResponse.Failure(ex.Message));
+        }
+        catch (Exception)
+        {
+            return BadRequest(ApiResponse.Failure("Unable to process unfollow request."));
+        }
+    }
+
     [HttpGet("{userId}/followers")]
     public async Task<ActionResult<IEnumerable<FriendResponseDto>>> GetFollowers(string userId)
     {

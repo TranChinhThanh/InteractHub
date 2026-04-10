@@ -57,6 +57,38 @@ public sealed class FriendsService : IFriendsService
         }
     }
 
+    public async Task UnfollowAsync(string followerId, string followeeId)
+    {
+        if (string.IsNullOrWhiteSpace(followerId) || string.IsNullOrWhiteSpace(followeeId))
+        {
+            throw new ArgumentException("FollowerId and FolloweeId are required.");
+        }
+
+        if (string.Equals(followerId, followeeId, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("You cannot unfollow yourself.");
+        }
+
+        await EnsureUserExistsAsync(followerId, "Follower user not found.");
+        await EnsureUserExistsAsync(followeeId, "Followee user not found.");
+
+        var existingConnection = await _connectionRepository.GetConnectionAsync(followerId, followeeId);
+        if (existingConnection is null)
+        {
+            throw new InvalidOperationException("Connection does not exist.");
+        }
+
+        try
+        {
+            _connectionRepository.Delete(existingConnection);
+            await _connectionRepository.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            throw new InvalidOperationException("Unable to unfollow user.");
+        }
+    }
+
     public async Task<IEnumerable<FriendResponseDto>> GetFollowersAsync(string userId)
     {
         await EnsureUserExistsAsync(userId, "User not found.");

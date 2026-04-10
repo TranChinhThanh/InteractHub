@@ -258,3 +258,43 @@
 - Kết quả kiểm tra:
   - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
   - `npm run build`: pass.
+
+## 10/04/2026 - Friends Integration Slice trên ProfilePage (Phase 5)
+
+- Mở rộng `src/types/index.ts`:
+  - Thêm `FriendResponseDto` (`userId`, `userName`, `avatarUrl`, `bio`).
+- Tạo `src/services/friendService.ts` với 3 hàm:
+  - `followUser(followeeId)` gọi `POST /friends/{followeeId}`.
+  - `getFollowers(userId)` gọi `GET /friends/{userId}/followers`.
+  - `getFollowing(userId)` gọi `GET /friends/{userId}/following`.
+- Cập nhật `src/pages/ProfilePage.tsx`:
+  - Tích hợp thêm 2 query `['followers', userId]` và `['following', userId]`.
+  - Hiển thị số lượng Follower/Following dưới phần thông tin profile.
+  - Thêm logic nút `Theo dõi` khi xem profile người khác (`userId !== user.id`).
+  - Nút follow dùng `useMutation`, gọi `followUser` và `invalidateQueries({ queryKey: ['followers', userId] })` khi thành công.
+  - Bổ sung xử lý lỗi `onError` cho case đã follow hoặc tự follow.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - Smoke test follow với 2 user mới tạo qua API (`A follow B`): `PASS` (`beforeCount=0`, `afterCount=1`, `followStatus=200`).
+
+## 10/04/2026 - Unfollow Toggle Integration trên ProfilePage (Phase 5)
+
+- Cập nhật `src/services/friendService.ts`:
+  - Thêm hàm `unfollowUser(followeeId)` gọi `DELETE /friends/{followeeId}`.
+- Cập nhật `src/pages/ProfilePage.tsx`:
+  - Xác định trạng thái đang theo dõi bằng dữ liệu `followers` của profile đang xem.
+  - Nút hành động giờ chuyển đổi theo trạng thái:
+    - Chưa theo dõi: hiển thị `Theo dõi`.
+    - Đã theo dõi: hiển thị `Hủy theo dõi`.
+  - Bổ sung `useMutation` cho `unfollowUser`.
+  - Sau follow/unfollow đều invalidate cache cho cả:
+    - `['followers', userId]` của profile đang xem.
+    - `['following', currentUserId]` và `['followers', currentUserId]` của user hiện tại.
+  - Bổ sung xử lý lỗi riêng cho flow hủy theo dõi.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - Smoke test follow -> unfollow với 2 user mới tạo qua API: `PASS` (follower count thay đổi đúng 0 -> 1 -> 0).

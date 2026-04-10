@@ -76,3 +76,10 @@ export interface CommentResponseDto {
 export interface CreateCommentDto {
   content: string;
 }
+
+export interface FriendResponseDto {
+  userId: string;
+  userName: string;
+  avatarUrl: string | null;
+  bio: string | null;
+}

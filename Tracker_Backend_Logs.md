@@ -1098,3 +1098,24 @@
 
 - [x] `dotnet build` backend: thành công sau khi thêm Users search endpoint.
 - [x] API contract đã sẵn sàng cho frontend gọi search với query param `q`.
+
+---
+
+## 10/04/2026 - Friends Unfollow API Slice (Phase 5)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/Interfaces/IFriendsService.cs`:
+  - Thêm contract `Task UnfollowAsync(string followerId, string followeeId);`.
+- [x] Cập nhật `Backend/Services/FriendsService.cs`:
+  - Triển khai `UnfollowAsync` với validate đầy đủ (không cho self-unfollow, kiểm tra user tồn tại, kiểm tra connection tồn tại).
+  - Xóa connection qua repository và `SaveChangesAsync()`.
+  - Trả lỗi nghiệp vụ rõ ràng cho các case không hợp lệ.
+- [x] Cập nhật `Backend/Controllers/FriendsController.cs`:
+  - Thêm endpoint `DELETE /api/friends/{followeeId}`.
+  - Chuẩn hóa response theo `ApiResponse.Success/Failure` đồng bộ với các endpoint Friends hiện có.
+
+### Kết quả xác minh
+
+- [x] `dotnet build` backend: pass sau khi thêm endpoint unfollow.
+- [x] Smoke test flow follow -> unfollow qua API: pass, follower count tăng/giảm đúng theo thao tác.

@@ -35,48 +35,54 @@ function SearchPage() {
         <p className="text-sm text-red-600">Đã xảy ra lỗi khi tìm kiếm user.</p>
       )}
 
-      {normalizedQuery.length > 0 && !isLoading && !isError && users.length === 0 && (
-        <p className="text-sm text-gray-600">Không tìm thấy user nào.</p>
-      )}
+      {normalizedQuery.length > 0 &&
+        !isLoading &&
+        !isError &&
+        users.length === 0 && (
+          <p className="text-sm text-gray-600">Không tìm thấy user nào.</p>
+        )}
 
-      {normalizedQuery.length > 0 && !isLoading && !isError && users.length > 0 && (
-        <ul className="space-y-3">
-          {users.map((user) => {
-            const displayName = user.userName || "Unknown User";
+      {normalizedQuery.length > 0 &&
+        !isLoading &&
+        !isError &&
+        users.length > 0 && (
+          <ul className="space-y-3">
+            {users.map((user) => {
+              const displayName = user.userName || "Unknown User";
 
-            return (
-              <li
-                key={user.id}
-                className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3"
-              >
-                <Link
-                  to={`/profile/${user.id}`}
-                  className="h-10 w-10 overflow-hidden rounded-full bg-gray-200"
+              return (
+                <li
+                  key={user.id}
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3"
                 >
-                  {user.avatarUrl ? (
-                    <img
-                      src={user.avatarUrl}
-                      alt={displayName}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-600">
-                      {displayName.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </Link>
+                  <Link
+                    to={`/profile/${user.id}`}
+                    className="h-10 w-10 overflow-hidden rounded-full bg-gray-200"
+                  >
+                    {user.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={displayName}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-600">
+                        {displayName.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </Link>
 
-                <Link
-                  to={`/profile/${user.id}`}
-                  className="text-sm font-semibold text-gray-800 hover:underline"
-                >
-                  {displayName}
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                  <Link
+                    to={`/profile/${user.id}`}
+                    className="text-sm font-semibold text-gray-800 hover:underline"
+                  >
+                    {displayName}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        )}
     </section>
   );
 }
