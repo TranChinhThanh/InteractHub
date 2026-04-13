@@ -16,6 +16,8 @@ namespace InteractHub.Api.Models
         [MaxLength(50)]
         public string Type { get; set; } = string.Empty; // e.g., "Like", "Comment", "Follow"
 
+        public int? RelatedEntityId { get; set; }
+
         public bool IsRead { get; set; } = false;
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
   followUser,
@@ -55,6 +55,8 @@ function ProfilePage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
+  const [showFollowers, setShowFollowers] = useState(false);
+  const [showFollowing, setShowFollowing] = useState(false);
   const {
     register,
     handleSubmit,
@@ -253,15 +255,123 @@ function ProfilePage() {
         </p>
 
         <div className="flex items-center gap-4 text-sm text-gray-700">
-          <p>
+          <button
+            type="button"
+            onClick={() => {
+              setShowFollowers(true);
+              setShowFollowing(false);
+            }}
+            className="hover:underline"
+          >
             <span className="font-semibold text-gray-800">Follower:</span>{" "}
             {followers.length}
-          </p>
-          <p>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setShowFollowing(true);
+              setShowFollowers(false);
+            }}
+            className="hover:underline"
+          >
             <span className="font-semibold text-gray-800">Following:</span>{" "}
             {following.length}
-          </p>
+          </button>
         </div>
+
+        {showFollowers ? (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <h2 className="text-sm font-semibold text-gray-800">Follower</h2>
+            {followers.length === 0 ? (
+              <p className="mt-2 text-sm text-gray-600">
+                Chưa có follower nào.
+              </p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {followers.map((follower) => {
+                  const displayName = follower.userName || "Unknown User";
+
+                  return (
+                    <li
+                      key={follower.userId}
+                      className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3"
+                    >
+                      <Link
+                        to={`/profile/${follower.userId}`}
+                        className="h-10 w-10 overflow-hidden rounded-full bg-gray-200"
+                      >
+                        {follower.avatarUrl ? (
+                          <img
+                            src={follower.avatarUrl}
+                            alt={displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-600">
+                            {displayName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </Link>
+
+                      <Link
+                        to={`/profile/${follower.userId}`}
+                        className="text-sm font-semibold text-gray-800 hover:underline"
+                      >
+                        {displayName}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        ) : null}
+
+        {showFollowing ? (
+          <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+            <h2 className="text-sm font-semibold text-gray-800">Following</h2>
+            {following.length === 0 ? (
+              <p className="mt-2 text-sm text-gray-600">Chưa theo dõi ai.</p>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {following.map((followingUser) => {
+                  const displayName = followingUser.userName || "Unknown User";
+
+                  return (
+                    <li
+                      key={followingUser.userId}
+                      className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3"
+                    >
+                      <Link
+                        to={`/profile/${followingUser.userId}`}
+                        className="h-10 w-10 overflow-hidden rounded-full bg-gray-200"
+                      >
+                        {followingUser.avatarUrl ? (
+                          <img
+                            src={followingUser.avatarUrl}
+                            alt={displayName}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-gray-600">
+                            {displayName.charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                      </Link>
+
+                      <Link
+                        to={`/profile/${followingUser.userId}`}
+                        className="text-sm font-semibold text-gray-800 hover:underline"
+                      >
+                        {displayName}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        ) : null}
       </section>
 
       {canEdit ? (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useDebounce } from "../hooks/useDebounce";
@@ -8,13 +8,22 @@ function Navbar() {
   const { user, logout } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
+  const lastNavigatedSearch = useRef("");
 
   useEffect(() => {
     const normalizedSearch = debouncedSearch.trim();
 
-    if (normalizedSearch.length > 0) {
-      navigate(`/search?q=${encodeURIComponent(normalizedSearch)}`);
+    if (normalizedSearch.length === 0) {
+      lastNavigatedSearch.current = "";
+      return;
     }
+
+    if (normalizedSearch === lastNavigatedSearch.current) {
+      return;
+    }
+
+    lastNavigatedSearch.current = normalizedSearch;
+    navigate(`/search?q=${encodeURIComponent(normalizedSearch)}`);
   }, [debouncedSearch, navigate]);
 
   const handleLogout = () => {

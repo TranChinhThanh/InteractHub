@@ -1,14 +1,9 @@
 import axiosClient from "../api/axiosClient";
-import type {
-  ApiResponse,
-  CreateStoryDto,
-  StoryResponseDto,
-} from "../types";
+import type { ApiResponse, CreateStoryDto, StoryResponseDto } from "../types";
 
 export const getActiveStories = async (): Promise<StoryResponseDto[]> => {
-  const response = await axiosClient.get<ApiResponse<StoryResponseDto[]>>(
-    "/stories",
-  );
+  const response =
+    await axiosClient.get<ApiResponse<StoryResponseDto[]>>("/stories");
 
   return response.data.data ?? [];
 };

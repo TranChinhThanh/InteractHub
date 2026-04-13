@@ -4,21 +4,28 @@ using InteractHub.Api.DTOs.Likes;
 using InteractHub.Api.Models;
 using InteractHub.Api.Repositories.Interfaces;
 using InteractHub.Api.Services.Interfaces;
+using Microsoft.AspNetCore.Identity;
 
 public sealed class LikesService : ILikesService
 {
     private readonly ILikeRepository _likeRepository;
     private readonly IPostRepository _postRepository;
     private readonly ICommentRepository _commentRepository;
+    private readonly INotificationRepository _notificationRepository;
+    private readonly UserManager<ApplicationUser> _userManager;
 
     public LikesService(
         ILikeRepository likeRepository,
         IPostRepository postRepository,
-        ICommentRepository commentRepository)
+        ICommentRepository commentRepository,
+        INotificationRepository notificationRepository,
+        UserManager<ApplicationUser> userManager)
     {
         _likeRepository = likeRepository;
         _postRepository = postRepository;
         _commentRepository = commentRepository;
+        _notificationRepository = notificationRepository;
+        _userManager = userManager;
     }
 
     public async Task<ToggleLikeResponseDto> TogglePostLikeAsync(int postId, string userId)
@@ -53,6 +60,26 @@ public sealed class LikesService : ILikesService
         });
 
         await _likeRepository.SaveChangesAsync();
+
+        if (!string.Equals(post.UserId, userId, StringComparison.Ordinal))
+        {
+            var likerUser = await _userManager.FindByIdAsync(userId);
+            var likerUserName = likerUser?.UserName;
+            var content = string.IsNullOrWhiteSpace(likerUserName)
+                ? "Ai đó đã thích bài viết của bạn."
+                : $"{likerUserName} đã thích bài viết của bạn.";
+
+            await _notificationRepository.AddAsync(new Notification
+            {
+                UserId = post.UserId,
+                Type = "Like",
+                Content = content,
+                RelatedEntityId = postId,
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await _notificationRepository.SaveChangesAsync();
+        }
 
         return new ToggleLikeResponseDto
         {

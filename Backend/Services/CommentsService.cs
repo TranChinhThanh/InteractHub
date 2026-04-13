@@ -12,15 +12,18 @@ public sealed class CommentsService : ICommentsService
 {
     private readonly ICommentRepository _commentRepository;
     private readonly IPostRepository _postRepository;
+    private readonly INotificationRepository _notificationRepository;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public CommentsService(
         ICommentRepository commentRepository,
         IPostRepository postRepository,
+        INotificationRepository notificationRepository,
         UserManager<ApplicationUser> userManager)
     {
         _commentRepository = commentRepository;
         _postRepository = postRepository;
+        _notificationRepository = notificationRepository;
         _userManager = userManager;
     }
 
@@ -58,6 +61,20 @@ public sealed class CommentsService : ICommentsService
         {
             await _commentRepository.AddAsync(comment);
             await _commentRepository.SaveChangesAsync();
+
+            if (!string.Equals(post.UserId, userId, StringComparison.Ordinal))
+            {
+                await _notificationRepository.AddAsync(new Notification
+                {
+                    UserId = post.UserId,
+                    Type = "Comment",
+                    Content = $"{user.UserName} đã bình luận về bài viết của bạn.",
+                    RelatedEntityId = postId,
+                    CreatedAt = DateTime.UtcNow,
+                });
+
+                await _notificationRepository.SaveChangesAsync();
+            }
         }
         catch (DbUpdateException)
         {

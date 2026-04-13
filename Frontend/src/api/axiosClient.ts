@@ -4,13 +4,24 @@ const TOKEN_STORAGE_KEY = "auth_token";
 const USER_ID_STORAGE_KEY = "auth_user_id";
 const USERNAME_STORAGE_KEY = "auth_username";
 
+const clearAuthStorage = () => {
+  sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+  sessionStorage.removeItem(USER_ID_STORAGE_KEY);
+  sessionStorage.removeItem(USERNAME_STORAGE_KEY);
+
+  // Keep cleanup for legacy keys from old localStorage-based auth.
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(USER_ID_STORAGE_KEY);
+  localStorage.removeItem(USERNAME_STORAGE_KEY);
+};
+
 const axiosClient = axios.create({
   baseURL: "http://localhost:5035/api",
 });
 
 axiosClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+    const token = sessionStorage.getItem(TOKEN_STORAGE_KEY);
 
     if (token) {
       const headers = AxiosHeaders.from(config.headers);
@@ -32,9 +43,7 @@ axiosClient.interceptors.response.use(
       requestUrl.includes("/auth/register");
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(USER_ID_STORAGE_KEY);
-      localStorage.removeItem(USERNAME_STORAGE_KEY);
+      clearAuthStorage();
       window.location.href = "/login";
     }
 

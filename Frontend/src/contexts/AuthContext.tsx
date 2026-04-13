@@ -15,6 +15,12 @@ const TOKEN_STORAGE_KEY = "auth_token";
 const USER_ID_STORAGE_KEY = "auth_user_id";
 const USERNAME_STORAGE_KEY = "auth_username";
 
+const clearLegacyLocalStorageAuth = () => {
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(USER_ID_STORAGE_KEY);
+  localStorage.removeItem(USERNAME_STORAGE_KEY);
+};
+
 export interface User {
   id: string;
   username: string;
@@ -37,12 +43,12 @@ interface AuthProviderProps {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const getInitialToken = (): string | null => {
-  return localStorage.getItem(TOKEN_STORAGE_KEY);
+  return sessionStorage.getItem(TOKEN_STORAGE_KEY);
 };
 
 const getInitialUser = (): User | null => {
-  const userId = localStorage.getItem(USER_ID_STORAGE_KEY);
-  const username = localStorage.getItem(USERNAME_STORAGE_KEY);
+  const userId = sessionStorage.getItem(USER_ID_STORAGE_KEY);
+  const username = sessionStorage.getItem(USERNAME_STORAGE_KEY);
 
   if (!userId || !username) {
     return null;
@@ -75,9 +81,10 @@ function AuthProvider({ children }: AuthProviderProps) {
         username: data.username,
       };
 
-      localStorage.setItem(TOKEN_STORAGE_KEY, data.token);
-      localStorage.setItem(USER_ID_STORAGE_KEY, data.userId);
-      localStorage.setItem(USERNAME_STORAGE_KEY, data.username);
+      sessionStorage.setItem(TOKEN_STORAGE_KEY, data.token);
+      sessionStorage.setItem(USER_ID_STORAGE_KEY, data.userId);
+      sessionStorage.setItem(USERNAME_STORAGE_KEY, data.username);
+      clearLegacyLocalStorageAuth();
 
       setToken(data.token);
       setUser(nextUser);
@@ -104,9 +111,10 @@ function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const logout = () => {
-    localStorage.removeItem(TOKEN_STORAGE_KEY);
-    localStorage.removeItem(USER_ID_STORAGE_KEY);
-    localStorage.removeItem(USERNAME_STORAGE_KEY);
+    sessionStorage.removeItem(TOKEN_STORAGE_KEY);
+    sessionStorage.removeItem(USER_ID_STORAGE_KEY);
+    sessionStorage.removeItem(USERNAME_STORAGE_KEY);
+    clearLegacyLocalStorageAuth();
     setUser(null);
     setToken(null);
   };

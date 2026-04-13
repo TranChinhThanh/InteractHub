@@ -10,13 +10,16 @@ using Microsoft.EntityFrameworkCore;
 public sealed class FriendsService : IFriendsService
 {
     private readonly IConnectionRepository _connectionRepository;
+    private readonly INotificationRepository _notificationRepository;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public FriendsService(
         IConnectionRepository connectionRepository,
+        INotificationRepository notificationRepository,
         UserManager<ApplicationUser> userManager)
     {
         _connectionRepository = connectionRepository;
+        _notificationRepository = notificationRepository;
         _userManager = userManager;
     }
 
@@ -50,6 +53,19 @@ public sealed class FriendsService : IFriendsService
             });
 
             await _connectionRepository.SaveChangesAsync();
+
+            var followerUser = await _userManager.FindByIdAsync(followerId);
+            var followerUserName = followerUser?.UserName ?? "Ai đó";
+
+            await _notificationRepository.AddAsync(new Notification
+            {
+                UserId = followeeId,
+                Type = "Follow",
+                Content = $"{followerUserName} đã bắt đầu theo dõi bạn.",
+                CreatedAt = DateTime.UtcNow,
+            });
+
+            await _notificationRepository.SaveChangesAsync();
         }
         catch (DbUpdateException)
         {

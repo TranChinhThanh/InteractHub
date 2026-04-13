@@ -27,6 +27,7 @@ export interface PostResponseDto {
   imageUrl: string | null;
   createdAt: string;
   likeCount: number;
+  isLikedByCurrentUser: boolean;
   commentCount: number;
   hashtags: string[];
 }

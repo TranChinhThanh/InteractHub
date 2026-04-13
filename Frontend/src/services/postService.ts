@@ -16,6 +16,7 @@ interface BackendPostResponseDto {
   imageUrl: string | null;
   createdAt: string;
   hashtags: string[];
+  isLikedByCurrentUser?: boolean;
   author?: BackendPostAuthorDto;
   userId?: string;
   userName?: string;
@@ -41,6 +42,7 @@ const normalizePost = (post: BackendPostResponseDto): PostResponseDto => {
     imageUrl: post.imageUrl,
     createdAt: post.createdAt,
     likeCount: post.likeCount ?? 0,
+    isLikedByCurrentUser: post.isLikedByCurrentUser ?? false,
     commentCount: post.commentCount ?? 0,
     hashtags: Array.isArray(post.hashtags) ? post.hashtags : [],
   };
@@ -67,6 +69,14 @@ export const getPosts = async (
   };
 
   return payload.items;
+};
+
+export const getPostById = async (id: number): Promise<PostResponseDto> => {
+  const response = await axiosClient.get<ApiResponse<BackendPostResponseDto>>(
+    `/posts/${id}`,
+  );
+
+  return normalizePost(response.data.data);
 };
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

@@ -1119,3 +1119,71 @@
 
 - [x] `dotnet build` backend: pass sau khi thêm endpoint unfollow.
 - [x] Smoke test flow follow -> unfollow qua API: pass, follower count tăng/giảm đúng theo thao tác.
+
+---
+
+## 13/04/2026 - Full-Stack Auto-Notification & Post Detail Slice (Phase 5)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Models/Notification.cs`:
+  - Thêm field `RelatedEntityId` (`int?`) để liên kết thông báo với post khi cần điều hướng.
+- [x] Cập nhật `Backend/Services/FriendsService.cs`:
+  - Inject `INotificationRepository`.
+  - Trong `SendFriendRequestAsync`, sau khi tạo connection thành công, tạo notification cho followee:
+    - `Type = "Follow"`
+    - `Content = "{followerUserName} đã bắt đầu theo dõi bạn."`
+    - `CreatedAt = DateTime.UtcNow`
+- [x] Cập nhật `Backend/Services/LikesService.cs`:
+  - Inject `INotificationRepository` và `UserManager<ApplicationUser>`.
+  - Trong `TogglePostLikeAsync`, khi thêm like mới và người like không phải chủ post:
+    - tạo notification `Type = "Like"`
+    - set `RelatedEntityId = postId`
+    - set `CreatedAt = DateTime.UtcNow`
+- [x] Cập nhật `Backend/Services/CommentsService.cs`:
+  - Inject `INotificationRepository`.
+  - Trong `CreateCommentAsync`, khi commenter không phải chủ post:
+    - tạo notification `Type = "Comment"`
+    - set `RelatedEntityId = postId`
+    - set `CreatedAt = DateTime.UtcNow`
+- [x] Cập nhật `Backend/Services/NotificationsService.cs`:
+  - Mapping `NotificationResponseDto.RelatedEntityId` từ entity thay vì luôn `null`.
+
+### Migration & Build
+
+- [x] Tạo migration mới: `20260413144813_AddNotificationRelatedEntityId`.
+- [x] Chạy `dotnet ef database update` thành công, đã apply cột `RelatedEntityId` vào bảng `Notifications`.
+- [x] `dotnet build` backend: pass.
+
+### Kết quả runtime self-test
+
+- [x] Kịch bản API E2E tự động: `A like post của B` + `A comment post của B` + `A follow B`.
+- [x] `GET /api/notifications` của B trả đủ 3 loại thông báo mới (`Like`, `Comment`, `Follow`).
+- [x] `Like` và `Comment` có `relatedEntityId` đúng bằng `postId`.
+- [x] Kết quả script: `AUTO_NOTIFICATION_SMOKE: PASS` (`postId=32`, notification ids `6/7/8`).
+
+---
+
+## 13/04/2026 - Hoàn thành Hotfix UX: Tên người Comment & UI Danh sách Follow (Phase 5)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/CommentsService.cs`:
+  - Đổi nội dung thông báo comment từ chuỗi chung sang username thực tế của người bình luận.
+  - Nội dung mới: `"{user.UserName} đã bình luận về bài viết của bạn."`.
+
+---
+
+## 13/04/2026 - Hotfix UX Like Button: Hiển thị trạng thái "Đã thích" (Phase 5)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/DTOs/Posts/PostResponseDto.cs`:
+  - Thêm field `IsLikedByCurrentUser`.
+- [x] Cập nhật `Backend/Services/Interfaces/IPostService.cs`:
+  - Mở rộng `GetAllAsync`/`GetByIdAsync` nhận `currentUserId` tùy chọn.
+- [x] Cập nhật `Backend/Services/PostService.cs`:
+  - Bổ sung kiểm tra like theo user hiện tại cho từng post qua `ILikeRepository`.
+  - Trả về `IsLikedByCurrentUser` trong mapping `PostResponseDto`.
+- [x] Cập nhật `Backend/Controllers/PostsController.cs`:
+  - Truyền `ClaimTypes.NameIdentifier` (nếu có) vào service cho `GET /api/posts` và `GET /api/posts/{postId}`.

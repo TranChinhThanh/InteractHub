@@ -109,6 +109,7 @@ function PostCard({ post, currentUserId }: PostCardProps) {
               ? {
                   ...item,
                   likeCount: Math.max(0, item.likeCount + delta),
+                  isLikedByCurrentUser: response.data.isLiked,
                 }
               : item,
           ),
@@ -250,7 +251,7 @@ function PostCard({ post, currentUserId }: PostCardProps) {
         >
           {likeMutation.isPending
             ? "Đang xử lý..."
-            : `Lượt thích (${post.likeCount})`}
+            : `${post.isLikedByCurrentUser ? "Đã thích" : "Lượt thích"} (${post.likeCount})`}
         </button>
         <button
           type="button"

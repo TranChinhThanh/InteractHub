@@ -10,6 +10,7 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const SearchPage = lazy(() => import("./pages/SearchPage"));
+const PostDetailPage = lazy(() => import("./pages/PostDetailPage"));
 
 function App() {
   return (
@@ -54,6 +55,16 @@ function App() {
               <ProtectedRoute>
                 <MainLayout>
                   <SearchPage />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/posts/:postId"
+            element={
+              <ProtectedRoute>
+                <MainLayout>
+                  <PostDetailPage />
                 </MainLayout>
               </ProtectedRoute>
             }

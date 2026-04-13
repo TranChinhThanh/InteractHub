@@ -55,7 +55,7 @@ public sealed class NotificationsService : INotificationsService
             Type = notification.Type,
             Content = notification.Content,
             IsRead = notification.IsRead,
-            RelatedEntityId = null,
+            RelatedEntityId = notification.RelatedEntityId,
             CreatedAt = notification.CreatedAt,
         };
     }

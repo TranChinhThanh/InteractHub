@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { getNotifications, markAsRead } from "../services/notificationService";
-import type { ApiResponse } from "../types";
+import type { ApiResponse, NotificationResponseDto } from "../types";
 
 const getErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (isAxiosError<ApiResponse<unknown>>(error)) {
@@ -36,6 +38,8 @@ const formatCreatedAt = (createdAt: string): string => {
 };
 
 function NotificationsPage() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const {
@@ -60,6 +64,33 @@ function NotificationsPage() {
       );
     },
   });
+
+  const handleNotificationClick = (notification: NotificationResponseDto) => {
+    if (!notification) {
+      return;
+    }
+
+    if (!notification.isRead) {
+      markAsReadMutation.mutate(notification.id);
+    }
+
+    if (notification.type === "Follow") {
+      const targetUserId = user?.id ?? notification.userId;
+
+      if (targetUserId) {
+        navigate(`/profile/${targetUserId}`);
+      }
+
+      return;
+    }
+
+    if (
+      (notification.type === "Like" || notification.type === "Comment") &&
+      notification.relatedEntityId
+    ) {
+      navigate(`/posts/${notification.relatedEntityId}`);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -100,20 +131,14 @@ function NotificationsPage() {
             <button
               key={notification.id}
               type="button"
-              onClick={() => {
-                if (isUnread) {
-                  markAsReadMutation.mutate(notification.id);
-                }
-              }}
-              disabled={!isUnread || isMarkingAsRead}
+              onClick={() => handleNotificationClick(notification)}
+              disabled={isMarkingAsRead}
               className={`w-full rounded-xl border p-4 text-left shadow-sm transition ${
                 isUnread
                   ? "border-blue-100 bg-blue-50 hover:border-blue-200"
                   : "border-gray-200 bg-white"
               } ${
-                isUnread && !isMarkingAsRead
-                  ? "cursor-pointer"
-                  : "cursor-default"
+                !isMarkingAsRead ? "cursor-pointer" : "cursor-default"
               } ${isMarkingAsRead ? "opacity-70" : ""}`}
             >
               <p className="text-sm font-medium text-gray-800">

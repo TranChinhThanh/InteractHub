@@ -21,14 +21,16 @@ public class PostsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<PostListResponseDto>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var result = await _postService.GetAllAsync(pageNumber, pageSize);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _postService.GetAllAsync(pageNumber, pageSize, currentUserId);
         return Ok(ApiResponse.Success(result));
     }
 
     [HttpGet("{postId:int}")]
     public async Task<ActionResult<PostResponseDto>> GetById(int postId)
     {
-        var result = await _postService.GetByIdAsync(postId);
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var result = await _postService.GetByIdAsync(postId, currentUserId);
         if (result is null)
         {
             return NotFound(ApiResponse.Failure("Post not found."));

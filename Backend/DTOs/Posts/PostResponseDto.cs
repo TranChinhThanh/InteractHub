@@ -10,6 +10,7 @@ public sealed record PostResponseDto
     public string? ImageUrl { get; init; }
     public DateTime CreatedAt { get; init; }
     public int LikeCount { get; init; }
+    public bool IsLikedByCurrentUser { get; init; }
     public int CommentCount { get; init; }
     public IReadOnlyList<string> Hashtags { get; init; } = Array.Empty<string>();
     public PostAuthorDto Author { get; init; } = new();

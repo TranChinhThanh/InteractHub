@@ -82,14 +82,20 @@ public sealed class PostService : IPostService
         return ToPostResponse(createdPost, createdPost.User);
     }
 
-    public async Task<PostResponseDto?> GetByIdAsync(int postId)
+    public async Task<PostResponseDto?> GetByIdAsync(int postId, string? currentUserId = null)
     {
         var post = await _postRepository.GetPostWithDetailsByIdAsync(postId);
 
-        return post is null ? null : ToPostResponse(post, post.User);
+        if (post is null)
+        {
+            return null;
+        }
+
+        var isLikedByCurrentUser = await IsPostLikedByUserAsync(post.Id, currentUserId);
+        return ToPostResponse(post, post.User, isLikedByCurrentUser);
     }
 
-    public async Task<PostListResponseDto> GetAllAsync(int pageNumber, int pageSize)
+    public async Task<PostListResponseDto> GetAllAsync(int pageNumber, int pageSize, string? currentUserId = null)
     {
         var safePageNumber = pageNumber < 1 ? 1 : pageNumber;
         var safePageSize = pageSize < 1 ? 10 : Math.Min(pageSize, MaxPageSize);
@@ -102,9 +108,16 @@ public sealed class PostService : IPostService
             .Take(safePageSize)
             .ToList();
 
+        var itemDtos = new List<PostResponseDto>(items.Count);
+        foreach (var post in items)
+        {
+            var isLikedByCurrentUser = await IsPostLikedByUserAsync(post.Id, currentUserId);
+            itemDtos.Add(ToPostResponse(post, post.User, isLikedByCurrentUser));
+        }
+
         return new PostListResponseDto
         {
-            Items = items.Select(post => ToPostResponse(post, post.User)).ToList(),
+            Items = itemDtos,
             PageNumber = safePageNumber,
             PageSize = safePageSize,
             TotalCount = totalCount,
@@ -149,7 +162,7 @@ public sealed class PostService : IPostService
         return true;
     }
 
-    private static PostResponseDto ToPostResponse(Post post, ApplicationUser? user)
+    private static PostResponseDto ToPostResponse(Post post, ApplicationUser? user, bool isLikedByCurrentUser = false)
     {
         return new PostResponseDto
         {
@@ -161,6 +174,7 @@ public sealed class PostService : IPostService
             ImageUrl = post.ImageUrl,
             CreatedAt = post.CreatedAt,
             LikeCount = post.Likes.Count,
+            IsLikedByCurrentUser = isLikedByCurrentUser,
             CommentCount = post.Comments.Count,
             Hashtags = post.Hashtags
                 .Select(h => $"#{h.Name}")
@@ -173,6 +187,17 @@ public sealed class PostService : IPostService
                 FullName = user?.FullName,
             },
         };
+    }
+
+    private async Task<bool> IsPostLikedByUserAsync(int postId, string? currentUserId)
+    {
+        if (string.IsNullOrWhiteSpace(currentUserId))
+        {
+            return false;
+        }
+
+        var like = await _likeRepository.GetPostLikeAsync(postId, currentUserId);
+        return like is not null;
     }
 
     private static void ValidateImage(IFormFile image)

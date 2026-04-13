@@ -338,3 +338,70 @@
   - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
   - `npm run build`: pass.
   - Story smoke test (create -> get -> delete -> verify) qua API: `PASS` (`createStatus=201`, `deleteStatus=200`).
+
+## 13/04/2026 - Search Result Click Navigation Fix (Phase 5)
+
+- Cập nhật `src/components/Navbar.tsx` để xử lý lỗi điều hướng khi click trái vào kết quả search:
+  - Thêm `lastNavigatedSearch` bằng `useRef` để ghi nhận từ khóa đã điều hướng gần nhất.
+  - Luồng debounce chỉ `navigate('/search?q=...')` khi từ khóa thay đổi thật sự.
+  - Chặn điều hướng lặp lại khi chuyển route sang profile (tránh hiện tượng nháy rồi quay về trang search).
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - Regression check logic điều hướng debounce: `NAV_GUARD_TEST: PASS` (không điều hướng lặp khi query không đổi, chỉ điều hướng lại sau khi clear và nhập lại query).
+
+## 13/04/2026 - Multi-Tab Authentication Isolation Fix (Phase 5)
+
+- Cập nhật `src/contexts/AuthContext.tsx`:
+  - Chuyển lưu phiên đăng nhập từ `localStorage` sang `sessionStorage` để mỗi tab giữ phiên riêng.
+  - Đồng bộ login/logout với `sessionStorage`.
+  - Bổ sung cleanup key auth legacy trong `localStorage` để tránh trộn phiên giữa các tab.
+- Cập nhật `src/api/axiosClient.ts`:
+  - Request interceptor đọc token từ `sessionStorage`.
+  - Nhánh xử lý `401` dọn dữ liệu auth ở cả `sessionStorage` và key legacy trong `localStorage`.
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - Regression check storage key: `AUTH_STORAGE_ISOLATION_TEST: PASS` (token mỗi tab độc lập theo `sessionStorage`, không còn dùng token shared từ `localStorage`).
+
+## 13/04/2026 - Full-Stack Auto-Notification & Post Detail Slice (Phase 5)
+
+- Cập nhật `src/services/postService.ts`:
+  - Thêm `getPostById(id)` gọi `GET /posts/${id}` và normalize về `PostResponseDto`.
+- Tạo `src/pages/PostDetailPage.tsx`:
+  - Đọc `postId` từ params.
+  - Dùng `useQuery` lấy dữ liệu post.
+  - Hiển thị state loading/error theo yêu cầu và render `PostCard` khi có dữ liệu.
+- Cập nhật `src/App.tsx`:
+  - Thêm lazy import `PostDetailPage`.
+  - Thêm protected route `/posts/:postId` trong `MainLayout`.
+- Cập nhật `src/pages/NotificationsPage.tsx`:
+  - Thêm `useNavigate` + xử lý click notification:
+    - `Follow` -> điều hướng profile.
+    - `Like`/`Comment` có `relatedEntityId` -> điều hướng `/posts/{relatedEntityId}`.
+  - Giữ luồng gọi `markAsReadMutation` khi notification còn unread.
+
+- Kết quả kiểm tra:
+  - `npm run lint`: pass (còn 1 warning cũ ở `RegisterPage.tsx`, không phát sinh lỗi mới).
+  - `npm run build`: pass.
+  - Build output có chunk mới `PostDetailPage-*.js`.
+
+## 13/04/2026 - Hoàn thành Hotfix UX: Tên người Comment & UI Danh sách Follow (Phase 5)
+
+- Cập nhật `src/pages/ProfilePage.tsx`:
+  - Thêm 2 state UI: `showFollowers` và `showFollowing`.
+  - Đổi block đếm `Follower/Following` sang button có `hover:underline` và toggle hiển thị danh sách theo tab.
+  - Render danh sách `followers` và `following` ngay bên dưới phần đếm:
+    - Hiển thị avatar nhỏ + username.
+    - Bọc avatar/tên bằng `Link` đến `/profile/{userId}`.
+    - Có empty state khi danh sách rỗng.
+
+## 13/04/2026 - Hotfix UX Like Button: Hiển thị trạng thái "Đã thích" (Phase 5)
+
+- Cập nhật `src/types/index.ts`:
+  - Bổ sung `PostResponseDto.isLikedByCurrentUser`.
+- Cập nhật `src/services/postService.ts`:
+  - Map field backend `isLikedByCurrentUser` vào dữ liệu post normalize.
+- Cập nhật `src/components/PostCard.tsx`:
+  - Nút like hiển thị `Đã thích` khi `post.isLikedByCurrentUser = true`, ngược lại hiển thị `Lượt thích`.
+  - Sau khi toggle like thành công, cập nhật cache vừa `likeCount` vừa `isLikedByCurrentUser` để UI đổi trạng thái ngay.
