@@ -19,3 +19,23 @@ export const markAsRead = async (id: number): Promise<ApiResponse<unknown>> => {
 
   return response.data;
 };
+
+export const deleteNotification = async (
+  id: number,
+): Promise<ApiResponse<unknown>> => {
+  const response = await axiosClient.delete<ApiResponse<unknown>>(
+    `/notifications/${id}`,
+  );
+
+  return response.data;
+};
+
+export const deleteAllNotifications = async (): Promise<
+  ApiResponse<unknown>
+> => {
+  const response = await axiosClient.delete<ApiResponse<unknown>>(
+    "/notifications",
+  );
+
+  return response.data;
+};

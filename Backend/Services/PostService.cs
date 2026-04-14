@@ -98,14 +98,10 @@ public sealed class PostService : IPostService
     {
         var safePageNumber = pageNumber < 1 ? 1 : pageNumber;
         var safePageSize = pageSize < 1 ? 10 : Math.Min(pageSize, MaxPageSize);
+        var skip = (safePageNumber - 1) * safePageSize;
 
-        var allPosts = (await _postRepository.GetAllPostsWithDetailsAsync()).ToList();
-
-        var totalCount = allPosts.Count;
-        var items = allPosts
-            .Skip((safePageNumber - 1) * safePageSize)
-            .Take(safePageSize)
-            .ToList();
+        var totalCount = await _postRepository.CountPostsAsync();
+        var items = (await _postRepository.GetPostsPageWithDetailsAsync(skip, safePageSize)).ToList();
 
         var itemDtos = new List<PostResponseDto>(items.Count);
         foreach (var post in items)

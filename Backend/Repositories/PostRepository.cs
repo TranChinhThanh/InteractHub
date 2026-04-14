@@ -18,11 +18,33 @@ public class PostRepository : GenericRepository<Post>, IPostRepository
     public async Task<IEnumerable<Post>> GetAllPostsWithDetailsAsync()
     {
         return await _context.Posts
+            .AsNoTracking()
             .Include(p => p.User)
             .Include(p => p.Comments)
             .Include(p => p.Likes)
             .Include(p => p.Hashtags)
             .OrderByDescending(p => p.CreatedAt)
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+
+    public async Task<int> CountPostsAsync()
+    {
+        return await _context.Posts.CountAsync();
+    }
+
+    public async Task<IEnumerable<Post>> GetPostsPageWithDetailsAsync(int skip, int take)
+    {
+        return await _context.Posts
+            .AsNoTracking()
+            .Include(p => p.User)
+            .Include(p => p.Comments)
+            .Include(p => p.Likes)
+            .Include(p => p.Hashtags)
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip(skip)
+            .Take(take)
+            .AsSplitQuery()
             .ToListAsync();
     }
 

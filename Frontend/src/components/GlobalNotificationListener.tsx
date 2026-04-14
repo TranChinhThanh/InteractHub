@@ -13,6 +13,8 @@ function GlobalNotificationListener() {
       return;
     }
 
+    let isDisposed = false;
+
     const connection = new HubConnectionBuilder()
       .withUrl("http://localhost:5035/hubs/notifications", {
         accessTokenFactory: () => token,
@@ -26,12 +28,25 @@ function GlobalNotificationListener() {
     });
 
     const startConnection = async () => {
-      await connection.start();
+      try {
+        await connection.start();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        const isNegotiationAbort = message.includes(
+          "stopped during negotiation",
+        );
+
+        if (!isDisposed && !isNegotiationAbort) {
+          console.error("SignalR connection start failed:", error);
+        }
+      }
     };
 
     void startConnection();
 
     return () => {
+      isDisposed = true;
+      connection.off("ReceiveNotification");
       void connection.stop();
     };
   }, [token, queryClient]);

@@ -23,4 +23,11 @@ public sealed class NotificationRepository : GenericRepository<Notification>, IN
             .OrderByDescending(notification => notification.CreatedAt)
             .ToListAsync();
     }
+
+    public async Task<int> DeleteAllByUserIdAsync(string userId)
+    {
+        return await _context.Notifications
+            .Where(notification => notification.UserId == userId)
+            .ExecuteDeleteAsync();
+    }
 }

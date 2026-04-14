@@ -429,3 +429,43 @@
 
 - Kết quả kiểm tra:
   - `npm run build`: pass.
+
+## 14/04/2026 - Notifications UI: Bổ sung nút Xóa thông báo
+
+- Cập nhật `src/services/notificationService.ts`:
+  - Thêm API client `deleteNotification(id)` gọi `DELETE /notifications/{id}`.
+- Cập nhật `src/pages/NotificationsPage.tsx`:
+  - Thêm mutation `deleteNotificationMutation`.
+  - Thêm nút `Xóa` cho từng notification item.
+  - Disable trạng thái thao tác item phù hợp trong lúc đang mark-as-read/mark-all/delete để tránh race condition.
+  - Giữ invalidate cache `['notifications']` sau khi xóa để UI đồng bộ dữ liệu server.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
+## 14/04/2026 - Notifications UI: Bổ sung nút Xóa hết
+
+- Cập nhật `src/services/notificationService.ts`:
+  - Thêm API client `deleteAllNotifications()` gọi `DELETE /notifications`.
+- Cập nhật `src/pages/NotificationsPage.tsx`:
+  - Thêm mutation `deleteAllNotificationsMutation`.
+  - Thêm nút `Xóa hết` cạnh nút `Đánh dấu đã đọc hết`.
+  - Thêm `window.confirm` trước khi xóa toàn bộ để tránh thao tác nhầm.
+  - Đồng bộ trạng thái disable/loading giữa mark-all, delete-all và thao tác từng item để tránh race condition.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
+## 14/04/2026 - UX/Performance Tuning: Giảm Loading Treo + Ổn định SignalR Listener
+
+- Cập nhật `src/main.tsx`:
+  - Cấu hình `QueryClient` default options cho queries:
+    - `retry: false` để fail-fast khi backend không sẵn sàng (tránh loading kéo dài do retry nhiều vòng).
+    - `refetchOnWindowFocus: false` để giảm refetch không cần thiết khi chuyển tab/focus lại.
+- Cập nhật `src/components/GlobalNotificationListener.tsx`:
+  - Bổ sung xử lý lỗi khi `connection.start()` để tránh unhandled promise rejection.
+  - Bỏ qua lỗi `stopped during negotiation` trong dev StrictMode (mount/unmount kép) để giảm log đỏ gây nhiễu.
+  - Cleanup rõ ràng hơn: `connection.off("ReceiveNotification")` trước `connection.stop()`.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.

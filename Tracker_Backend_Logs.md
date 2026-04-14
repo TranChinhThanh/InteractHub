@@ -1348,3 +1348,69 @@
 
 - [x] Chạy build backend thành công sau patch:
   - `dotnet build` -> `Build succeeded`.
+
+---
+
+## 14/04/2026 - Performance Optimization: SQL Pagination cho Feed Posts
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Repositories/Interfaces/IPostRepository.cs`:
+  - Thêm `CountPostsAsync()`.
+  - Thêm `GetPostsPageWithDetailsAsync(int skip, int take)`.
+- [x] Cập nhật `Backend/Repositories/PostRepository.cs`:
+  - Thêm truy vấn đếm tổng số posts ở database (`CountAsync`).
+  - Thêm truy vấn lấy page posts ở database (`OrderByDescending` + `Skip` + `Take`) kèm details.
+  - Áp dụng `AsNoTracking` + `AsSplitQuery` cho các truy vấn đọc feed để giảm overhead.
+- [x] Cập nhật `Backend/Services/PostService.cs` (`GetAllAsync`):
+  - Bỏ luồng tải toàn bộ posts vào memory rồi mới phân trang.
+  - Chuyển sang luồng phân trang tại DB: tính `skip`, lấy `totalCount` và page items trực tiếp từ repository.
+
+### Xác minh
+
+- [x] Build backend pass sau tối ưu:
+  - `dotnet build` -> `Build succeeded`.
+
+---
+
+## 14/04/2026 - Notifications API: Bổ sung tính năng Xóa thông báo
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/Interfaces/INotificationsService.cs`:
+  - Thêm method `DeleteAsync(int notificationId, string userId)`.
+- [x] Cập nhật `Backend/Services/NotificationsService.cs`:
+  - Thêm logic xóa thông báo theo `notificationId`.
+  - Kiểm tra quyền sở hữu thông báo theo `userId` trước khi xóa.
+  - Trả lỗi nhất quán cho các case `not found` và `forbidden`.
+- [x] Cập nhật `Backend/Controllers/NotificationsController.cs`:
+  - Thêm endpoint `DELETE /api/notifications/{id}`.
+  - Giữ chuẩn response `ApiResponse.Success/Failure` và exception handling đồng nhất với endpoint hiện có.
+
+### Xác minh
+
+- [x] Build backend pass sau patch:
+  - `dotnet build Backend/InteractHub.Api.csproj` -> `Build succeeded`.
+
+---
+
+## 14/04/2026 - Notifications API: Bổ sung tính năng Xóa hết thông báo
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Repositories/Interfaces/INotificationRepository.cs`:
+  - Thêm method `DeleteAllByUserIdAsync(string userId)`.
+- [x] Cập nhật `Backend/Repositories/NotificationRepository.cs`:
+  - Triển khai xóa toàn bộ thông báo theo `userId` bằng `ExecuteDeleteAsync` (thực thi trực tiếp tại DB).
+- [x] Cập nhật `Backend/Services/Interfaces/INotificationsService.cs`:
+  - Thêm method `DeleteAllAsync(string userId)`.
+- [x] Cập nhật `Backend/Services/NotificationsService.cs`:
+  - Thêm validate `userId` và gọi repository để xóa toàn bộ thông báo theo user hiện tại.
+- [x] Cập nhật `Backend/Controllers/NotificationsController.cs`:
+  - Thêm endpoint `DELETE /api/notifications`.
+  - Trả response gồm `message` và `deletedCount`.
+
+### Xác minh
+
+- [x] Build backend pass sau patch:
+  - `dotnet build Backend/InteractHub.Api.csproj` -> `Build succeeded`.

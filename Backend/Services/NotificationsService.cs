@@ -46,6 +46,33 @@ public sealed class NotificationsService : INotificationsService
         await _notificationRepository.SaveChangesAsync();
     }
 
+    public async Task DeleteAsync(int notificationId, string userId)
+    {
+        var notification = await _notificationRepository.GetByIdAsync(notificationId);
+        if (notification is null)
+        {
+            throw new InvalidOperationException("Notification not found.");
+        }
+
+        if (!string.Equals(notification.UserId, userId, StringComparison.Ordinal))
+        {
+            throw new UnauthorizedAccessException("You do not have permission to modify this notification.");
+        }
+
+        _notificationRepository.Delete(notification);
+        await _notificationRepository.SaveChangesAsync();
+    }
+
+    public async Task<int> DeleteAllAsync(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new ArgumentException("UserId is required.");
+        }
+
+        return await _notificationRepository.DeleteAllByUserIdAsync(userId);
+    }
+
     private static NotificationResponseDto ToNotificationResponse(Notification notification)
     {
         return new NotificationResponseDto

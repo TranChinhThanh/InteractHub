@@ -19,7 +19,7 @@ function App() {
     <BrowserRouter>
       <Suspense fallback={<PageLoader />}>
         <GlobalNotificationListener />
-        <Toaster position="bottom-right" />
+        <Toaster position="top-right" />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
