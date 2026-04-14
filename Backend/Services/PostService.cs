@@ -5,7 +5,6 @@ using InteractHub.Api.DTOs.Posts;
 using InteractHub.Api.Models;
 using InteractHub.Api.Repositories.Interfaces;
 using InteractHub.Api.Services.Interfaces;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class PostService : IPostService
@@ -24,7 +23,7 @@ public sealed class PostService : IPostService
     private readonly ILikeRepository _likeRepository;
     private readonly IReportRepository _reportRepository;
     private readonly IGenericRepository<Hashtag> _hashtagRepository;
-    private readonly IWebHostEnvironment _environment;
+    private readonly IFileService _fileService;
 
     public PostService(
         IPostRepository postRepository,
@@ -32,14 +31,14 @@ public sealed class PostService : IPostService
         ILikeRepository likeRepository,
         IReportRepository reportRepository,
         IGenericRepository<Hashtag> hashtagRepository,
-        IWebHostEnvironment environment)
+        IFileService fileService)
     {
         _postRepository = postRepository;
         _commentRepository = commentRepository;
         _likeRepository = likeRepository;
         _reportRepository = reportRepository;
         _hashtagRepository = hashtagRepository;
-        _environment = environment;
+        _fileService = fileService;
     }
 
     public async Task<PostResponseDto> CreateAsync(string userId, CreatePostDto request)
@@ -63,7 +62,7 @@ public sealed class PostService : IPostService
     public async Task<PostResponseDto> CreateWithImageAsync(string userId, CreatePostWithImageDto request)
     {
         ValidateImage(request.Image);
-        var imageUrl = await SaveImageAsync(request.Image);
+        var imageUrl = await _fileService.UploadFileAsync(request.Image, "posts");
 
         var post = new Post
         {
@@ -91,7 +90,7 @@ public sealed class PostService : IPostService
             return null;
         }
 
-        var isLikedByCurrentUser = await IsPostLikedByUserAsync(post.Id, currentUserId);
+        var isLikedByCurrentUser = IsPostLikedByUser(post, currentUserId);
         return ToPostResponse(post, post.User, isLikedByCurrentUser);
     }
 
@@ -111,7 +110,7 @@ public sealed class PostService : IPostService
         var itemDtos = new List<PostResponseDto>(items.Count);
         foreach (var post in items)
         {
-            var isLikedByCurrentUser = await IsPostLikedByUserAsync(post.Id, currentUserId);
+            var isLikedByCurrentUser = IsPostLikedByUser(post, currentUserId);
             itemDtos.Add(ToPostResponse(post, post.User, isLikedByCurrentUser));
         }
 
@@ -148,6 +147,18 @@ public sealed class PostService : IPostService
         if (post is null || !string.Equals(post.UserId, userId, StringComparison.Ordinal))
         {
             return false;
+        }
+
+        if (!string.IsNullOrWhiteSpace(post.ImageUrl))
+        {
+            try
+            {
+                await _fileService.DeleteFileAsync(post.ImageUrl, "posts");
+            }
+            catch (ArgumentException)
+            {
+                // Ignore legacy non-blob URL formats to keep delete flow backward-compatible.
+            }
         }
 
         var commentIds = await _commentRepository.GetCommentIdsByPostIdAsync(postId);
@@ -189,15 +200,14 @@ public sealed class PostService : IPostService
         };
     }
 
-    private async Task<bool> IsPostLikedByUserAsync(int postId, string? currentUserId)
+    private static bool IsPostLikedByUser(Post post, string? currentUserId)
     {
         if (string.IsNullOrWhiteSpace(currentUserId))
         {
             return false;
         }
 
-        var like = await _likeRepository.GetPostLikeAsync(postId, currentUserId);
-        return like is not null;
+        return post.Likes.Any(like => string.Equals(like.UserId, currentUserId, StringComparison.Ordinal));
     }
 
     private static void ValidateImage(IFormFile image)
@@ -217,27 +227,6 @@ public sealed class PostService : IPostService
         {
             throw new ArgumentException("Unsupported image format. Allowed: .jpg, .jpeg, .png, .webp");
         }
-    }
-
-    private async Task<string> SaveImageAsync(IFormFile image)
-    {
-        var webRoot = _environment.WebRootPath;
-        if (string.IsNullOrWhiteSpace(webRoot))
-        {
-            webRoot = Path.Combine(_environment.ContentRootPath, "wwwroot");
-        }
-
-        var uploadsDir = Path.Combine(webRoot, "uploads", "posts");
-        Directory.CreateDirectory(uploadsDir);
-
-        var extension = Path.GetExtension(image.FileName);
-        var fileName = $"{Guid.NewGuid():N}{extension}";
-        var fullPath = Path.Combine(uploadsDir, fileName);
-
-        await using var stream = new FileStream(fullPath, FileMode.Create);
-        await image.CopyToAsync(stream);
-
-        return $"/uploads/posts/{fileName}";
     }
 
     private async Task ApplyHashtagsAsync(Post post, string content)

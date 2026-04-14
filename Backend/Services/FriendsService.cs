@@ -1,25 +1,30 @@
 namespace InteractHub.Api.Services;
 
 using InteractHub.Api.DTOs.Friends;
+using InteractHub.Api.Hubs;
 using InteractHub.Api.Models;
 using InteractHub.Api.Repositories.Interfaces;
 using InteractHub.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class FriendsService : IFriendsService
 {
     private readonly IConnectionRepository _connectionRepository;
     private readonly INotificationRepository _notificationRepository;
+    private readonly IHubContext<NotificationHub> _hubContext;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public FriendsService(
         IConnectionRepository connectionRepository,
         INotificationRepository notificationRepository,
+        IHubContext<NotificationHub> hubContext,
         UserManager<ApplicationUser> userManager)
     {
         _connectionRepository = connectionRepository;
         _notificationRepository = notificationRepository;
+        _hubContext = hubContext;
         _userManager = userManager;
     }
 
@@ -57,15 +62,18 @@ public sealed class FriendsService : IFriendsService
             var followerUser = await _userManager.FindByIdAsync(followerId);
             var followerUserName = followerUser?.UserName ?? "Ai đó";
 
-            await _notificationRepository.AddAsync(new Notification
+            var notification = new Notification
             {
                 UserId = followeeId,
                 Type = "Follow",
                 Content = $"{followerUserName} đã bắt đầu theo dõi bạn.",
                 CreatedAt = DateTime.UtcNow,
-            });
+            };
+
+            await _notificationRepository.AddAsync(notification);
 
             await _notificationRepository.SaveChangesAsync();
+            await _hubContext.Clients.User(notification.UserId).SendAsync("ReceiveNotification");
         }
         catch (DbUpdateException)
         {

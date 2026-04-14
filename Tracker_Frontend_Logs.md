@@ -405,3 +405,27 @@
 - Cập nhật `src/components/PostCard.tsx`:
   - Nút like hiển thị `Đã thích` khi `post.isLikedByCurrentUser = true`, ngược lại hiển thị `Lượt thích`.
   - Sau khi toggle like thành công, cập nhật cache vừa `likeCount` vừa `isLikedByCurrentUser` để UI đổi trạng thái ngay.
+
+## 14/04/2026 - Hotfix Feed Image URL (Local Runtime)
+
+- Cập nhật `src/services/postService.ts`:
+  - Bổ sung chuẩn hóa `imageUrl` khi dữ liệu backend trả path tương đối (`/uploads/...`).
+  - Tự resolve sang absolute URL theo origin backend (`http://localhost:5035`) để ảnh hiển thị đúng khi frontend chạy cổng khác (`5173`).
+- Kết quả:
+  - Ảnh trong post tạo từ local upload hiển thị đúng, không còn icon ảnh hỏng do sai host.
+
+## 14/04/2026 - SignalR Global Notification Listener + Toast (Phase 6/F4)
+
+- Tạo `src/components/GlobalNotificationListener.tsx`:
+  - Lấy `token` từ `useAuth()`.
+  - Dựng kết nối SignalR bằng `HubConnectionBuilder` tới `http://localhost:5035/hubs/notifications` với `accessTokenFactory` và `withAutomaticReconnect()`.
+  - Đăng ký listener `ReceiveNotification` để:
+    - Hiển thị toast `Bạn có thông báo mới!` với icon `🔔` qua `react-hot-toast`.
+    - Gọi `queryClient.invalidateQueries({ queryKey: ['notifications'] })` để đồng bộ danh sách thông báo.
+  - Cleanup trong `useEffect` bằng `connection.stop()`.
+- Cập nhật `src/App.tsx`:
+  - Import và render `<GlobalNotificationListener />` toàn cục cùng router.
+  - Listener chạy trong cây đã được bọc bởi `QueryClientProvider` + `AuthProvider` (từ `src/main.tsx`).
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.

@@ -32,6 +32,31 @@ interface BackendPostListResponseData {
   totalCount: number;
 }
 
+const resolveImageUrl = (imageUrl: string | null): string | null => {
+  if (!imageUrl) {
+    return null;
+  }
+
+  if (/^https?:\/\//i.test(imageUrl)) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("/")) {
+    const baseUrl = axiosClient.defaults.baseURL;
+
+    if (typeof baseUrl === "string" && baseUrl.length > 0) {
+      try {
+        const origin = new URL(baseUrl).origin;
+        return `${origin}${imageUrl}`;
+      } catch {
+        return imageUrl;
+      }
+    }
+  }
+
+  return imageUrl;
+};
+
 const normalizePost = (post: BackendPostResponseDto): PostResponseDto => {
   return {
     id: post.id,
@@ -39,7 +64,7 @@ const normalizePost = (post: BackendPostResponseDto): PostResponseDto => {
     userName: post.userName ?? post.author?.username ?? "Unknown",
     userAvatarUrl: post.userAvatarUrl ?? null,
     content: post.content,
-    imageUrl: post.imageUrl,
+    imageUrl: resolveImageUrl(post.imageUrl),
     createdAt: post.createdAt,
     likeCount: post.likeCount ?? 0,
     isLikedByCurrentUser: post.isLikedByCurrentUser ?? false,

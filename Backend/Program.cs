@@ -8,6 +8,7 @@ using System.Text;
 using InteractHub.Api.DTOs.Common;
 using InteractHub.Api.Repositories;
 using InteractHub.Api.Repositories.Interfaces;
+using InteractHub.Api.Hubs;
 using InteractHub.Api.Services;
 using InteractHub.Api.Services.Interfaces;
 using InteractHub.Api.Security;
@@ -59,6 +60,7 @@ builder.Services.AddScoped<INotificationsService, NotificationsService>();
 builder.Services.AddScoped<ICommentsService, CommentsService>();
 builder.Services.AddScoped<ILikesService, LikesService>();
 builder.Services.AddScoped<IReportsService, ReportsService>();
+builder.Services.AddScoped<IFileService, LocalFileService>();
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IPostRepository, PostRepository>();
 builder.Services.AddScoped<IConnectionRepository, ConnectionRepository>();
@@ -97,6 +99,19 @@ builder.Services.AddAuthentication(options =>
     options.RequireHttpsMetadata = false;
     options.Events = new JwtBearerEvents
     {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"].ToString();
+            var requestPath = context.HttpContext.Request.Path;
+
+            if (!string.IsNullOrWhiteSpace(accessToken)
+                && requestPath.StartsWithSegments("/hubs/notifications"))
+            {
+                context.Token = accessToken;
+            }
+
+            return Task.CompletedTask;
+        },
         OnChallenge = async context =>
         {
             context.HandleResponse();
@@ -162,6 +177,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddSignalR();
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -220,6 +236,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
 

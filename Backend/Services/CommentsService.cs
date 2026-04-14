@@ -1,11 +1,13 @@
 namespace InteractHub.Api.Services;
 
 using InteractHub.Api.DTOs.Comments;
+using InteractHub.Api.Hubs;
 using InteractHub.Api.Models;
 using InteractHub.Api.Repositories.Interfaces;
 using InteractHub.Api.Security;
 using InteractHub.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 public sealed class CommentsService : ICommentsService
@@ -13,17 +15,20 @@ public sealed class CommentsService : ICommentsService
     private readonly ICommentRepository _commentRepository;
     private readonly IPostRepository _postRepository;
     private readonly INotificationRepository _notificationRepository;
+    private readonly IHubContext<NotificationHub> _hubContext;
     private readonly UserManager<ApplicationUser> _userManager;
 
     public CommentsService(
         ICommentRepository commentRepository,
         IPostRepository postRepository,
         INotificationRepository notificationRepository,
+        IHubContext<NotificationHub> hubContext,
         UserManager<ApplicationUser> userManager)
     {
         _commentRepository = commentRepository;
         _postRepository = postRepository;
         _notificationRepository = notificationRepository;
+        _hubContext = hubContext;
         _userManager = userManager;
     }
 
@@ -64,16 +69,19 @@ public sealed class CommentsService : ICommentsService
 
             if (!string.Equals(post.UserId, userId, StringComparison.Ordinal))
             {
-                await _notificationRepository.AddAsync(new Notification
+                var notification = new Notification
                 {
                     UserId = post.UserId,
                     Type = "Comment",
                     Content = $"{user.UserName} đã bình luận về bài viết của bạn.",
                     RelatedEntityId = postId,
                     CreatedAt = DateTime.UtcNow,
-                });
+                };
+
+                await _notificationRepository.AddAsync(notification);
 
                 await _notificationRepository.SaveChangesAsync();
+                await _hubContext.Clients.User(notification.UserId).SendAsync("ReceiveNotification");
             }
         }
         catch (DbUpdateException)

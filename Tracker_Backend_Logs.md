@@ -1187,3 +1187,164 @@
   - Trả về `IsLikedByCurrentUser` trong mapping `PostResponseDto`.
 - [x] Cập nhật `Backend/Controllers/PostsController.cs`:
   - Truyền `ClaimTypes.NameIdentifier` (nếu có) vào service cho `GET /api/posts` và `GET /api/posts/{postId}`.
+
+---
+
+## 13/04/2026 - Azure Blob Storage Service Foundation (Requirement B4)
+
+### Phần Backend đã thực hiện
+
+- [x] Cài package NuGet `Azure.Storage.Blobs` vào `Backend/InteractHub.Api.csproj`.
+- [x] Tạo `Backend/Services/Interfaces/IFileService.cs`:
+  - `Task<string> UploadFileAsync(IFormFile file, string containerName);`
+  - `Task<bool> DeleteFileAsync(string fileUrl, string containerName);`
+- [x] Tạo `Backend/Services/AzureBlobService.cs` triển khai `IFileService`:
+  - Inject `IConfiguration`, đọc connection string `AzureBlobStorage`.
+  - `UploadFileAsync`: tạo tên file unique (`Guid + extension`), tạo container nếu chưa tồn tại với public access level `Blob`, upload stream, trả về absolute blob URI.
+  - `DeleteFileAsync`: parse blob name từ URL và xóa blob bằng `DeleteIfExistsAsync`.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - `builder.Services.AddScoped<IFileService, AzureBlobService>();`
+
+### Ghi chú phạm vi
+
+- [x] Chưa đụng vào `PostService`/`StoriesService` theo đúng yêu cầu hiện tại.
+
+---
+
+## 13/04/2026 - Refactor PostService sang Azure Blob Storage (Requirement B4)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/PostService.cs`:
+  - Inject `IFileService` vào constructor thay cho lưu file local.
+  - Trong `CreateWithImageAsync`, thay upload local bằng `_fileService.UploadFileAsync(request.Image, "posts")`.
+  - Trong `DeleteAsync`, bổ sung cleanup blob trước khi xóa post bằng `_fileService.DeleteFileAsync(post.ImageUrl, "posts")` khi có ảnh.
+  - Loại bỏ toàn bộ logic lưu file local (`wwwroot/uploads/posts`, `Directory.CreateDirectory`, `FileStream`).
+
+### Ghi chú phạm vi
+
+- [x] Chưa thay đổi `StoriesService` theo đúng yêu cầu hiện tại.
+
+---
+
+## 13/04/2026 - Hotfix Runtime 500 khi tải danh sách bài viết
+
+### Nguyên nhân
+
+- [x] `AzureBlobService` ném exception ngay trong constructor nếu thiếu `ConnectionStrings:AzureBlobStorage`.
+- [x] `PostService` inject `IFileService`, nên `GET /api/posts` bị fail DI và trả `500` dù endpoint không upload file.
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/AzureBlobService.cs`:
+  - Chuyển sang lazy-init `BlobServiceClient`.
+  - Không throw ở constructor nữa.
+  - Chỉ validate `AzureBlobStorage` khi thực sự gọi `UploadFileAsync`/`DeleteFileAsync`.
+
+### Kết quả
+
+- [x] `GET /api/posts` không còn phụ thuộc bắt buộc vào cấu hình Azure Blob ở thời điểm khởi tạo service.
+
+---
+
+## 13/04/2026 - Hotfix 400 khi đăng bài có ảnh
+
+### Nguyên nhân
+
+- [x] Sau khi refactor sang Azure Blob, môi trường local chưa có `ConnectionStrings:AzureBlobStorage` nên upload ảnh trả lỗi.
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/AzureBlobService.cs`:
+  - Ưu tiên upload/delete bằng Azure Blob khi có cấu hình `AzureBlobStorage`.
+  - Thêm fallback local storage cho môi trường chưa cấu hình Azure:
+    - Upload vào `wwwroot/uploads/{containerName}`.
+    - Trả về URL ảnh đầy đủ để frontend hiển thị trực tiếp.
+    - Hỗ trợ xóa file local tương ứng trong `DeleteFileAsync`.
+
+### Kết quả
+
+- [x] Đăng bài có ảnh hoạt động lại ở local dev mà không bắt buộc phải có Azure Blob connection string ngay.
+
+---
+
+## 14/04/2026 - Runtime Strategy Switch: Ưu tiên Local Upload để ổn định dev
+
+### Bối cảnh
+
+- [x] Theo yêu cầu hiện tại, tạm dừng sử dụng Azure Blob ở runtime để ưu tiên hệ thống chạy local ổn định.
+- [x] Giữ nguyên code Azure để dùng lại sau khi hoàn thiện các module chính.
+
+### Phần Backend đã thực hiện
+
+- [x] Tạo `Backend/Services/LocalFileService.cs` triển khai `IFileService`:
+  - Upload ảnh vào `wwwroot/uploads/{containerName}`.
+  - Trả về URL tương đối dạng `/uploads/{containerName}/{fileName}`.
+  - Hỗ trợ xóa ảnh local tương ứng theo URL đã lưu.
+- [x] Cập nhật DI trong `Backend/Program.cs`:
+  - Chuyển từ `AzureBlobService` sang `LocalFileService` cho `IFileService`.
+
+### Kết quả kỳ vọng
+
+- [x] `POST /api/posts/with-image` hoạt động ổn định trên local mà không phụ thuộc cấu hình Azure.
+
+---
+
+## 14/04/2026 - Hotfix Feed: Ảnh post không hiển thị & F5 tải chậm
+
+### Nguyên nhân xác định
+
+- [x] Ảnh post local lưu URL dạng tương đối (`/uploads/...`) nên frontend ở domain/port khác dễ hiển thị lỗi ảnh.
+- [x] `PostService.GetAllAsync`/`GetByIdAsync` đang gọi kiểm tra like theo từng post (N+1 query) làm feed load chậm khi refresh.
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/PostService.cs`:
+  - Bỏ truy vấn like theo từng post qua repository trong vòng lặp.
+  - Tính `IsLikedByCurrentUser` trực tiếp từ `post.Likes` đã được include, giảm số lượng query DB đáng kể.
+
+### Kết quả
+
+- [x] Luồng tải danh sách bài viết khi F5 nhẹ hơn do loại bỏ N+1 query cho trạng thái like.
+
+---
+
+## 14/04/2026 - SignalR Notification Hub Foundation (Requirement F4)
+
+### Phần Backend đã thực hiện
+
+- [x] Tạo `Backend/Hubs/NotificationHub.cs`:
+  - Kế thừa `Hub`.
+  - Gắn `[Authorize]` để chỉ cho phép client đã xác thực kết nối.
+- [x] Cập nhật `Backend/Program.cs`:
+  - Thêm `builder.Services.AddSignalR();`.
+  - Map hub endpoint: `app.MapHub<NotificationHub>("/hubs/notifications");`.
+  - Bổ sung `OnMessageReceived` trong `AddJwtBearer` để đọc JWT từ query `access_token` khi request path bắt đầu bằng `/hubs/notifications`.
+
+### Ghi chú phạm vi
+
+- [x] Chưa thay đổi business logic/service phát realtime notification ở phase này.
+
+---
+
+## 14/04/2026 - SignalR Realtime Emit From Services (Friends/Likes/Comments)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Services/FriendsService.cs`:
+  - Inject `IHubContext<NotificationHub>` vào constructor.
+  - Sau khi tạo và lưu `Notification` (follow), gọi:
+    - `await _hubContext.Clients.User(notification.UserId).SendAsync("ReceiveNotification");`
+- [x] Cập nhật `Backend/Services/LikesService.cs`:
+  - Inject `IHubContext<NotificationHub>` vào constructor.
+  - Sau khi tạo và lưu `Notification` (like post), gọi:
+    - `await _hubContext.Clients.User(notification.UserId).SendAsync("ReceiveNotification");`
+- [x] Cập nhật `Backend/Services/CommentsService.cs`:
+  - Inject `IHubContext<NotificationHub>` vào constructor.
+  - Sau khi tạo và lưu `Notification` (comment), gọi:
+    - `await _hubContext.Clients.User(notification.UserId).SendAsync("ReceiveNotification");`
+
+### Xác minh
+
+- [x] Chạy build backend thành công sau patch:
+  - `dotnet build` -> `Build succeeded`.
