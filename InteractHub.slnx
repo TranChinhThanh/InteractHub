@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Backend/">
     <Project Path="Backend/InteractHub.Api.csproj" />
+    <Project Path="Backend/InteractHub.Tests/InteractHub.Tests.csproj" />
   </Folder>
 </Solution>

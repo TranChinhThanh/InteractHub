@@ -4,6 +4,58 @@
 
 ---
 
+## Cập nhật bổ sung (19/04/2026) - Hoàn tất T1 với 15 Unit Tests / 3 Services
+
+### Việc đã thực thi
+
+- [x] Tạo file `Backend/InteractHub.Tests/Services/CommentsServiceTests.cs` với 5 test cases:
+  - `CreateCommentAsync_ShouldReturnSuccess_WhenPostExists`
+  - `CreateCommentAsync_ShouldThrowInvalidOperation_WhenPostDoesNotExist`
+  - `DeleteCommentAsync_ShouldDelete_WhenUserIsOwner`
+  - `DeleteCommentAsync_ShouldDelete_WhenUserIsAdmin`
+  - `DeleteCommentAsync_ShouldThrowUnauthorized_WhenUserIsNotOwnerOrAdmin`
+- [x] Tạo file `Backend/InteractHub.Tests/Services/LikesServiceTests.cs` với 5 test cases:
+  - `TogglePostLikeAsync_ShouldAddLike_WhenNotLikedYet`
+  - `TogglePostLikeAsync_ShouldRemoveLike_WhenAlreadyLiked`
+  - `TogglePostLikeAsync_ShouldThrowInvalidOperation_WhenPostDoesNotExist`
+  - `ToggleCommentLikeAsync_ShouldAddLike_WhenNotLikedYet`
+  - `ToggleCommentLikeAsync_ShouldRemoveLike_WhenAlreadyLiked`
+- [x] Bổ sung mock đầy đủ theo dependency thực tế của service: repositories + `UserManager<ApplicationUser>` + `IHubContext<NotificationHub>`.
+- [x] Hoàn tất mốc tối thiểu T1: tổng cộng **15 unit tests** cho **3 service classes** (`AuthService`, `CommentsService`, `LikesService`).
+
+### Kết quả xác minh
+
+- [x] Chạy `dotnet test InteractHub.Tests` thành công.
+- [x] Kết quả: **Total 15, Passed 15, Failed 0, Skipped 0**.
+- [x] Trạng thái requirement T1 trong tracker tổng: **DONE** (tạm bỏ qua metric coverage 60% theo scope hiện tại).
+
+---
+
+## Cập nhật thực hiện gần nhất (19/04/2026) - T1 Unit Testing AuthService
+
+### Việc đã thực thi
+
+- [x] Tạo test project `Backend/InteractHub.Tests` bằng lệnh `dotnet new xunit -n InteractHub.Tests`.
+- [x] Thêm reference từ test project sang API project bằng `dotnet add InteractHub.Tests reference InteractHub.Api.csproj`.
+- [x] Cài package mock framework `Moq` cho test project.
+- [x] Thêm test project vào solution tổng `InteractHub.slnx` để quản lý đồng bộ trong workspace.
+- [x] Tạo thư mục `Services` trong test project và thêm file `AuthServiceTests.cs`.
+- [x] Dựng mock `UserManager<ApplicationUser>` (qua `IUserStore<ApplicationUser>`) và mock `ITokenService` cho unit tests của `AuthService`.
+- [x] Viết đủ 5 test cases theo yêu cầu:
+  - `RegisterAsync_ShouldReturnSuccess_WhenDataIsValid`
+  - `RegisterAsync_ShouldReturnError_WhenUsernameAlreadyExists`
+  - `LoginAsync_ShouldReturnToken_WhenCredentialsAreValid`
+  - `LoginAsync_ShouldReturnError_WhenUserNotFound`
+  - `LoginAsync_ShouldReturnError_WhenPasswordIsInvalid`
+- [x] Dọn file mẫu `UnitTest1.cs` mặc định để tránh nhiễu và giữ test suite rõ mục tiêu.
+
+### Kết quả xác minh
+
+- [x] Chạy `dotnet test InteractHub.Tests` thành công, toàn bộ test `AuthService` pass.
+- [x] Bộ test phản ánh đầy đủ cả nhánh positive và negative của luồng Register/Login trong `AuthService`.
+
+---
+
 ## Cập nhật thực hiện gần nhất (07/04/2026)
 
 ### Việc đã làm xong

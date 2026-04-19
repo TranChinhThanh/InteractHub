@@ -16,7 +16,7 @@
 
 - [x] Đã rà soát lại toàn bộ yêu cầu F1-F4, B1-B4, T1, D1 trực tiếp từ `assignment.pdf`.
 - [x] Điều chỉnh phạm vi Posts: **upload video không phải yêu cầu bắt buộc**; assignment yêu cầu post text + image.
-- [ ] Cần bổ sung các hạng mục còn thiếu theo rubric: chuẩn response format cho toàn bộ controllers, repository pattern, client-side caching, test coverage (đặc biệt AuthService), Swagger examples, CI/CD Azure chi tiết.
+- [ ] Cần bổ sung các hạng mục còn thiếu theo rubric: chuẩn response format cho toàn bộ controllers, repository pattern, client-side caching, test coverage (đã đạt 15 unit tests cho 3 services; tạm chưa chốt metric coverage >= 60%), Swagger examples, CI/CD Azure chi tiết.
 
 ## Ma trận Requirement Chấm Điểm
 
@@ -28,7 +28,7 @@
 - [x] **B2:** RESTful API + DTO (đã có Auth/Posts/Users/Friends/Stories/Notifications + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller) + Reports Thin Slice 1-2 (repository + DTO + service + DI + controller `POST /api/reports/post/{postId:int}`) + Hashtags Trending Slice (`GET /api/hashtags/trending`), chuẩn hóa response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes/Reports/Hashtags + middleware 401/403; đã vượt mốc endpoint tối thiểu theo requirement).
 - [x] **B3:** JWT auth/authz (đã có JWT + role seeding + role-based + policy-based authorization).
 - [x] **B4:** Services layer theo rubric (đã dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + DI + thêm `UsersService` (UserManager-based) + `FriendsService` (ConnectionRepository-based) + `StoriesService` (StoryRepository-based) + `NotificationsService` (NotificationRepository-based) + `CommentsService` (CommentRepository-based) + `LikesService` (LikeRepository-based) + `ReportsService` (ReportRepository-based); đã bổ sung luồng xóa post an toàn theo thứ tự dọn dữ liệu liên quan khi dùng `DeleteBehavior.NoAction`; đã vượt mốc >= 5 service classes; đã tối ưu feed posts bằng phân trang ở DB (count + skip/take tại repository) thay vì load toàn bộ vào memory; đang chạy `LocalFileService` ổn định cho upload runtime local; đã bổ sung backend realtime emit qua `IHubContext<NotificationHub>` tại `FriendsService`/`LikesService`/`CommentsService`; [SKIPPED] phần Azure Blob Storage theo quyết định Tech Lead + Product Owner cho demo).
-- [ ] **T1:** Unit/Integration testing theo ngưỡng rubric (bắt buộc test logic Authentication/Authorization của AuthService).
+- [x] **T1:** Unit/Integration testing theo ngưỡng rubric (đã setup `InteractHub.Tests` (xUnit + Moq + project reference), hoàn thành 15 unit tests cho 3 services `AuthService`/`CommentsService`/`LikesService`, bao phủ đầy đủ positive + negative paths theo yêu cầu hiện tại; tạm chưa chốt metric coverage >= 60%).
 - [-] **D1:** SKIPPED: Azure deployment + CI/CD + monitoring.
 
 ---
@@ -102,8 +102,8 @@
 
 ## Giai đoạn 6: Kiểm thử & Triển khai Cloud (Cloud Deployment)
 
-- [ ] Tạo test project (xUnit/NUnit) và viết >= 15 unit tests cho >= 3 service classes.
-- [ ] Viết Unit Test bắt buộc cho logic Authentication/Authorization (`AuthService`) theo yêu cầu T1.
+- [x] Tạo test project (xUnit/NUnit) và viết >= 15 unit tests cho >= 3 service classes (đã tạo `Backend/InteractHub.Tests`, thêm `ProjectReference` tới `InteractHub.Api`, thêm package `Moq`, thêm project vào `InteractHub.slnx`, hoàn thành 15 tests cho `AuthService`/`CommentsService`/`LikesService`).
+- [x] Viết Unit Test bắt buộc cho logic Authentication/Authorization (`AuthService`) theo yêu cầu T1 (đã có 5 test cases cho register/login positive + negative).
 - [ ] Đạt >= 60% code coverage cho services + có test cases positive/negative.
 - [ ] Viết integration tests cho workflow quan trọng (Auth, Posts).
 - [-] SKIPPED: Triển khai Azure App Service + Azure SQL + Azure Blob Storage.
@@ -134,5 +134,5 @@
 - [x] Giai đoạn 3: RESTful APIs nghiệp vụ chính: 100% (đã hoàn thành Posts Step 1-5 + chuẩn response format cho Auth/Posts/Users/Friends/Stories/Notifications/Comments/Likes/Reports + dựng nền Generic Repository + Custom PostRepository + refactor `PostService` sang repository + Users Thin Slice 1-2 + Friends Thin Slice 1-2 + Unfollow Slice (repository + DTO + service + DI + controller) + Stories Thin Slice 1-2 (repository + DTO + service + DI + controller) + Notifications Thin Slice 1-2 (repository + DTO + service + DI + controller) + Comments Thin Slice 1-2 (repository + DTO + service + DI + controller) + Likes Thin Slice 1-2 (repository + DTO + service + DI + controller) + Reports Thin Slice 1-2 (repository + DTO + service + DI + controller); đã đạt mốc >= 20 endpoint (28 qua Swagger). Các hạng mục SignalR/Azure Blob được chuyển sang Giai đoạn 6 theo quyết định phạm vi).
 - [/] Giai đoạn 4: Frontend Setup: 85% (đã có Vite + React + TS + Tailwind + scaffold + `MainLayout`/`Navbar` + protected routing + Context API auth + axios client/interceptors + global `401` handling + React Query provider + route-level lazy loading (`React.lazy` + `Suspense` + `PageLoader`) + custom hook `useDebounce<T>`; còn refresh token, skeleton nâng cao và mở rộng kiến trúc component).
 - [x] Giai đoạn 5: Frontend Integration: 100% (đã hoàn thành module auth frontend (bao gồm fix multi-tab login isolation bằng `sessionStorage` theo tab), Home Feed (React Query cache posts/infinite load-more + Create Post Form RHF upload/preview + StoriesBar Tin 24h create/view/delete), refactor `PostCard` với delete/like/comment/report, Profile thin slice (view/edit + follow/unfollow), Notification thin slice (list/mark-as-read + click navigation tới profile/post detail), Search full-stack slice (debounce navbar + route `/search` + API `GET /users/search` + fix bug click trái kết quả search bị bounce route), và route Post Detail `/posts/:postId` theo phạm vi assignment hiện tại).
-- [/] Giai đoạn 6: Test & Cloud Deployment: 35% (đã có nền service Azure Blob Storage + DI và đã tích hợp upload/delete ảnh cho `PostService`; đã có nền SignalR backend hub + JWT query token auth, phát sự kiện realtime từ `FriendsService` + `LikesService` + `CommentsService`, và frontend đã tích hợp Global SignalR listener + toast + invalidate notifications; còn verify realtime end-to-end, kiểm thử và hoàn thiện các hạng mục không bị SKIPPED).
+- [/] Giai đoạn 6: Test & Cloud Deployment: 60% (đã tạo test project `InteractHub.Tests` theo xUnit, tích hợp `Moq`, hoàn thành 15 unit tests cho 3 services (`AuthService`, `CommentsService`, `LikesService`), đã có nền service Azure Blob Storage + DI và đã tích hợp upload/delete ảnh cho `PostService`; đã có nền SignalR backend hub + JWT query token auth, phát sự kiện realtime từ `FriendsService` + `LikesService` + `CommentsService`, và frontend đã tích hợp Global SignalR listener + toast + invalidate notifications; còn chốt báo cáo coverage >= 60%, verify realtime end-to-end và hoàn thiện các hạng mục không bị SKIPPED).
 - [ ] Giai đoạn 7: Hồ Sơ Nộp Bài: 0%.
