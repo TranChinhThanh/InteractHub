@@ -119,6 +119,40 @@ public sealed class PostService : IPostService
         };
     }
 
+    public async Task<PostListResponseDto> GetPostsByUserAsync(string targetUserId, int pageNumber, int pageSize, string? currentUserId = null)
+    {
+        if (string.IsNullOrWhiteSpace(targetUserId))
+        {
+            throw new ArgumentException("Target user id is required.");
+        }
+
+        var safePageNumber = pageNumber < 1 ? 1 : pageNumber;
+        var safePageSize = pageSize < 1 ? 10 : Math.Min(pageSize, MaxPageSize);
+        var skip = (safePageNumber - 1) * safePageSize;
+
+        var allUserPosts = (await _postRepository.GetPostsByUserIdAsync(targetUserId)).ToList();
+        var totalCount = allUserPosts.Count;
+        var pageItems = allUserPosts
+            .Skip(skip)
+            .Take(safePageSize)
+            .ToList();
+
+        var itemDtos = new List<PostResponseDto>(pageItems.Count);
+        foreach (var post in pageItems)
+        {
+            var isLikedByCurrentUser = IsPostLikedByUser(post, currentUserId);
+            itemDtos.Add(ToPostResponse(post, post.User, isLikedByCurrentUser));
+        }
+
+        return new PostListResponseDto
+        {
+            Items = itemDtos,
+            PageNumber = safePageNumber,
+            PageSize = safePageSize,
+            TotalCount = totalCount,
+        };
+    }
+
     public async Task<PostResponseDto?> UpdateAsync(int postId, string userId, UpdatePostDto request)
     {
         var post = await _postRepository.GetPostWithDetailsByIdAsync(postId);

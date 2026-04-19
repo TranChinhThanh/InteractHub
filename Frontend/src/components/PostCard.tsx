@@ -165,15 +165,22 @@ function PostCard({ post, currentUserId }: PostCardProps) {
   };
 
   return (
-    <article className="relative rounded-xl bg-white p-5 shadow-sm">
+    <article className="relative rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
       {canDelete ? (
         <button
           type="button"
           onClick={handleDelete}
           disabled={deleteMutation.isPending}
-          className="absolute right-4 top-4 rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Xoa bai viet"
         >
-          {deleteMutation.isPending ? "Đang xóa..." : "Xóa"}
+          {deleteMutation.isPending ? (
+            <span className="text-[10px]">...</span>
+          ) : (
+            <span className="material-symbols-outlined text-[18px]">
+              more_horiz
+            </span>
+          )}
         </button>
       ) : null}
 
@@ -182,17 +189,21 @@ function PostCard({ post, currentUserId }: PostCardProps) {
           type="button"
           onClick={handleReport}
           disabled={reportMutation.isPending}
-          className="absolute right-4 top-4 rounded-md bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-800 transition hover:bg-amber-200 disabled:cursor-not-allowed disabled:bg-amber-50"
+          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label="Bao cao bai viet"
         >
-          {reportMutation.isPending ? "Đang gửi..." : "Báo cáo"}
+          {reportMutation.isPending ? (
+            <span className="text-[10px]">...</span>
+          ) : (
+            <span className="material-symbols-outlined text-[18px]">
+              more_horiz
+            </span>
+          )}
         </button>
       ) : null}
 
-      <header className="mb-3 flex items-center gap-3 pr-20">
-        <Link
-          to={`/profile/${post.userId}`}
-          className="cursor-pointer hover:underline"
-        >
+      <header className="mb-4 flex items-center gap-3 pr-10">
+        <Link to={`/profile/${post.userId}`} className="cursor-pointer">
           {post.userAvatarUrl ? (
             <img
               src={post.userAvatarUrl}
@@ -200,7 +211,7 @@ function PostCard({ post, currentUserId }: PostCardProps) {
               className="h-10 w-10 rounded-full object-cover"
             />
           ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-600 font-semibold text-white">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-sky-400 font-semibold text-white">
               {initials}
             </div>
           )}
@@ -209,32 +220,34 @@ function PostCard({ post, currentUserId }: PostCardProps) {
         <div>
           <Link
             to={`/profile/${post.userId}`}
-            className="cursor-pointer font-semibold text-gray-800 hover:underline"
+            className="cursor-pointer font-semibold text-gray-900 hover:underline"
           >
             {post.userName}
           </Link>
-          <p className="text-sm text-gray-500">
+          <p className="text-[10px] uppercase tracking-[0.16em] text-gray-400">
             {formatCreatedAt(post.createdAt)}
           </p>
         </div>
       </header>
 
-      <p className="whitespace-pre-wrap text-gray-800">{post.content}</p>
+      <p className="whitespace-pre-wrap leading-7 text-gray-700">
+        {post.content}
+      </p>
 
       {post.imageUrl ? (
         <img
           src={post.imageUrl}
           alt="Post"
-          className="mt-3 max-h-[420px] w-full rounded-lg object-cover"
+          className="mt-4 max-h-[420px] w-full rounded-2xl border border-gray-100 object-cover"
         />
       ) : null}
 
       {post.hashtags.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-4 flex flex-wrap gap-2">
           {post.hashtags.map((tag) => (
             <span
               key={`${post.id}-${tag}`}
-              className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700"
+              className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600"
             >
               {tag}
             </span>
@@ -242,24 +255,47 @@ function PostCard({ post, currentUserId }: PostCardProps) {
         </div>
       ) : null}
 
-      <footer className="mt-4 flex items-center gap-4 text-sm text-gray-500">
-        <button
-          type="button"
-          onClick={handleToggleLike}
-          disabled={likeMutation.isPending}
-          className="rounded-md border border-gray-200 px-3 py-1.5 font-medium text-gray-600 transition hover:border-blue-200 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {likeMutation.isPending
-            ? "Đang xử lý..."
-            : `${post.isLikedByCurrentUser ? "Đã thích" : "Lượt thích"} (${post.likeCount})`}
-        </button>
-        <button
-          type="button"
-          onClick={() => setShowComments((previous) => !previous)}
-          className="hover:underline"
-        >
-          {post.commentCount} bình luận
-        </button>
+      <footer className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 text-sm text-gray-500">
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            onClick={handleToggleLike}
+            disabled={likeMutation.isPending}
+            className="inline-flex items-center gap-1 font-medium text-gray-600 transition hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <span
+              className={[
+                "material-symbols-outlined text-[18px]",
+                post.isLikedByCurrentUser ? "text-blue-600" : "text-gray-500",
+              ].join(" ")}
+            >
+              favorite
+            </span>
+            <span>{likeMutation.isPending ? "..." : post.likeCount}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setShowComments((previous) => !previous)}
+            className="inline-flex items-center gap-1 font-medium text-gray-600 transition hover:text-blue-700"
+          >
+            <span className="material-symbols-outlined text-[18px]">chat</span>
+            <span>{post.commentCount}</span>
+          </button>
+
+          {/* <button
+            type="button"
+            disabled
+            className="inline-flex cursor-default items-center text-gray-400"
+            aria-label="Chia se"
+          >
+            <span className="material-symbols-outlined text-[18px]">share</span>
+          </button> */}
+        </div>
+
+        {/* <span className="material-symbols-outlined text-[18px] text-gray-500">
+          bookmark
+        </span> */}
       </footer>
 
       {showComments ? (

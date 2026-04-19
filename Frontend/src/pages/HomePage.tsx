@@ -36,10 +36,10 @@ function HomePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <StoriesBar />
         <CreatePostForm />
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           Đang tải danh sách bài viết...
         </div>
       </div>
@@ -51,10 +51,10 @@ function HomePage() {
       error instanceof Error ? error.message : "Tải bài viết thất bại";
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <StoriesBar />
         <CreatePostForm />
-        <div className="rounded-xl bg-red-50 p-6 text-red-600 shadow-sm">
+        <div className="rounded-3xl border border-red-100 bg-red-50 p-6 text-red-600 shadow-sm">
           {message}
         </div>
       </div>
@@ -63,10 +63,10 @@ function HomePage() {
 
   if (!posts || posts.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-5">
         <StoriesBar />
         <CreatePostForm />
-        <div className="rounded-xl bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
           Chưa có bài viết nào.
         </div>
       </div>
@@ -74,11 +74,11 @@ function HomePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <StoriesBar />
       <CreatePostForm />
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {posts.map((post) => (
           <PostCard key={post.id} post={post} currentUserId={user?.id} />
         ))}
@@ -89,7 +89,7 @@ function HomePage() {
               type="button"
               onClick={() => fetchNextPage()}
               disabled={isFetchingNextPage}
-              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:border-blue-500 hover:text-blue-700 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
+              className="w-full rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:border-blue-500 hover:text-blue-700 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-400"
             >
               {isFetchingNextPage ? "Đang tải..." : "Tải thêm bài viết"}
             </button>

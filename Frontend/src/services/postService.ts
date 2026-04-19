@@ -96,6 +96,30 @@ export const getPosts = async (
   return payload.items;
 };
 
+export const getPostsByUser = async (
+  userId: string,
+  pageNumber = 1,
+  pageSize = 10,
+): Promise<PostResponseDto[]> => {
+  const response = await axiosClient.get<
+    ApiResponse<BackendPostListResponseData>
+  >(`/posts/user/${userId}`, {
+    params: {
+      pageNumber,
+      pageSize,
+    },
+  });
+
+  const payload: PostListResponseData = {
+    items: response.data.data.items.map((item) => normalizePost(item)),
+    pageNumber: response.data.data.pageNumber,
+    pageSize: response.data.data.pageSize,
+    totalCount: response.data.data.totalCount,
+  };
+
+  return payload.items;
+};
+
 export const getPostById = async (id: number): Promise<PostResponseDto> => {
   const response = await axiosClient.get<ApiResponse<BackendPostResponseDto>>(
     `/posts/${id}`,

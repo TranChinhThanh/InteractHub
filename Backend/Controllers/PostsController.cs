@@ -26,6 +26,21 @@ public class PostsController : ControllerBase
         return Ok(ApiResponse.Success(result));
     }
 
+    [HttpGet("user/{userId}")]
+    public async Task<ActionResult<PostListResponseDto>> GetByUserId(string userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+    {
+        try
+        {
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var result = await _postService.GetPostsByUserAsync(userId, pageNumber, pageSize, currentUserId);
+            return Ok(ApiResponse.Success(result));
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ApiResponse.Failure(ex.Message));
+        }
+    }
+
     [HttpGet("{postId:int}")]
     public async Task<ActionResult<PostResponseDto>> GetById(int postId)
     {

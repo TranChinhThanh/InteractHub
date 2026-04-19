@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import LeftSidebar from "../components/LeftSidebar";
 import Navbar from "../components/Navbar";
+import RightSidebar from "../components/RightSidebar";
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -7,20 +9,22 @@ interface MainLayoutProps {
 
 function MainLayout({ children }: MainLayoutProps) {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#f3f4f6]">
       <Navbar />
 
-      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-4 px-4 pb-6 pt-20 lg:grid-cols-[20%_55%_25%]">
-        <aside className="min-h-[180px] rounded-xl bg-blue-100 p-4">
-          LeftSidebar
+      <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-5 px-3 pb-8 pt-20 lg:grid-cols-[17rem_minmax(0,1fr)_18rem] lg:px-6">
+        <aside className="hidden lg:block">
+          <div className="sticky top-20">
+            <LeftSidebar />
+          </div>
         </aside>
 
-        <main className="min-h-[calc(100vh-7rem)] rounded-xl bg-amber-50 p-4">
-          {children}
-        </main>
+        <main className="min-h-[calc(100vh-7rem)]">{children}</main>
 
-        <aside className="min-h-[180px] rounded-xl bg-green-100 p-4">
-          RightSidebar
+        <aside className="hidden lg:block">
+          <div className="sticky top-20">
+            <RightSidebar />
+          </div>
         </aside>
       </div>
     </div>

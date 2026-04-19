@@ -469,3 +469,106 @@
 
 - Kết quả kiểm tra:
   - `npm run build`: pass.
+
+## 18/04/2026 - Main Layout: Bổ sung Left Sidebar Navigation
+
+- Cập nhật `src/components/LeftSidebar.tsx`:
+  - Tạo component sidebar trái mới dùng `NavLink` từ `react-router-dom`.
+  - Dùng `useAuth()` để lấy `user?.id` cho link `Trang cá nhân` (`/profile/${user?.id}`).
+  - Bổ sung 3 mục điều hướng:
+    - `Trang chủ` -> `/`
+    - `Thông báo` -> `/notifications`
+    - `Trang cá nhân` -> `/profile/${user?.id}`
+  - Thêm SVG icons cho Home/Bell/User.
+  - Áp dụng active state theo yêu cầu (`bg-blue-50 text-blue-600`) và hover effect hiện đại.
+
+- Cập nhật `src/layouts/MainLayout.tsx`:
+  - Import và render `<LeftSidebar />` trong cột trái của layout.
+  - Giữ bố cục 3 cột hiện tại, chỉ thay placeholder cột trái bằng sidebar thật.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
+## 18/04/2026 - Profile Page: Hiển thị bài viết của user
+
+- Cập nhật `src/services/postService.ts`:
+  - Thêm API client `getPostsByUser(userId, pageNumber, pageSize)` gọi `GET /posts/user/${userId}`.
+- Cập nhật `src/pages/ProfilePage.tsx`:
+  - Thêm `useInfiniteQuery` với queryKey `['posts', 'user', userId]`.
+  - Gọi API phân trang bài viết theo user đang xem profile.
+  - Render danh sách bằng `PostCard` hiện có để tái sử dụng UI/logic.
+  - Bổ sung nút `Tải thêm bài viết` giống Home Feed.
+  - Thêm loading/error/empty states cho khối bài viết trong trang profile.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
+## 18/04/2026 - Right Sidebar: Trending Hashtags
+
+- Tạo `src/services/hashtagService.ts`:
+  - Thêm hàm `getTrendingHashtags(limit = 5)` gọi `GET /hashtags/trending`.
+- Tạo `src/components/RightSidebar.tsx`:
+  - Dùng `useQuery` với `queryKey: ['trending-hashtags']`.
+  - Hiển thị card `Trending Hashtags` top 5 hashtag.
+  - Thêm loading/error/empty states.
+  - Mỗi hashtag render dạng badge và link sang `/search?q=${encodeURIComponent(hashtag)}`.
+- Cập nhật `src/layouts/MainLayout.tsx`:
+  - Render `<RightSidebar />` trong cột phải thay placeholder cũ.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
+## 18/04/2026 - Right Sidebar: Disable click Trending Hashtags
+
+- Cập nhật `src/components/RightSidebar.tsx`:
+  - Bỏ `Link` cho hashtag trending vì trang `/search` hiện chỉ hỗ trợ search user.
+  - Chuyển hashtag về hiển thị dạng badge tĩnh (non-clickable) để tránh UX sai kỳ vọng.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
+## 18/04/2026 - Home Feed UI Restyle (match mockup)
+
+- Cập nhật `src/layouts/MainLayout.tsx`:
+  - Tinh chỉnh bố cục 3 cột desktop, ẩn 2 sidebar trên mobile để feed trung tâm thoáng hơn.
+  - Bỏ nền khối `main` màu amber, chuyển về layout trung tính giống mockup.
+- Cập nhật `src/components/Navbar.tsx`:
+  - Tinh chỉnh header theo style social feed: logo xanh, ô search bo tròn có icon, cụm icon phải gọn.
+- Cập nhật `src/components/LeftSidebar.tsx`:
+  - Chuyển nav item sang dạng pill/card tương tự mockup.
+  - Bổ sung card quote trang trí phía dưới.
+- Cập nhật `src/components/RightSidebar.tsx`:
+  - Restyle card `Xu hướng` giống mockup (heading + item meta + hashtag + số lượng bài viết).
+  - Giữ hashtag ở dạng badge tĩnh (không click).
+- Cập nhật `src/components/StoriesBar.tsx`:
+  - Restyle thanh stories dạng strip ngang bo tròn giống mockup.
+- Cập nhật `src/components/CreatePostForm.tsx`:
+  - Đổi composer sang layout avatar + input mềm + action chips + nút đăng dạng pill.
+- Cập nhật `src/components/PostCard.tsx`:
+  - Tinh chỉnh card bài viết: header, typography, ảnh bo góc, footer icon actions theo style mockup.
+- Cập nhật `src/pages/HomePage.tsx`:
+  - Đồng bộ spacing/cards/load-more theo ngôn ngữ UI mới.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
+## 18/04/2026 - Notifications Page UI Restyle (match mockup)
+
+- Cập nhật `src/pages/NotificationsPage.tsx`:
+  - Restyle toàn bộ khu vực trung tâm trang Notifications theo mockup:
+    - Heading lớn `Thông báo`.
+    - Cụm 2 nút hành động (`Đánh dấu đã đọc hết`, `Xóa hết`) dạng pill giống style tab trong ảnh.
+    - Danh sách thông báo dạng card lớn, mỗi dòng có:
+      - avatar tròn,
+      - badge icon theo loại thông báo (`Like`, `Comment`, `Follow`, fallback `campaign`),
+      - nội dung text được tách actor/detail để nhấn mạnh phần tên,
+      - thời gian ở dòng phụ,
+      - chấm xanh bên phải cho item chưa đọc.
+  - Bỏ UI phân biệt trạng thái `Đã đọc/Chưa đọc` bằng label chip ở từng dòng (giữ logic xử lý click/mark-as-read).
+  - Không thay đổi sidebars theo yêu cầu.
+
+- Sửa lỗi build liên quan file `src/components/RightSidebar.tsx`:
+  - Loại bỏ biến không dùng `fakePostCount`.
+
+- Kết quả kiểm tra:
+  - `npm run build`: pass.

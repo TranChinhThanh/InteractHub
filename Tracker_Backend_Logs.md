@@ -1414,3 +1414,55 @@
 
 - [x] Build backend pass sau patch:
   - `dotnet build Backend/InteractHub.Api.csproj` -> `Build succeeded`.
+
+---
+
+## 18/04/2026 - Posts API: Bổ sung endpoint lấy bài viết theo user (Profile Feed)
+
+### Phần Backend đã thực hiện
+
+- [x] Cập nhật `Backend/Repositories/Interfaces/IPostRepository.cs`:
+  - Thêm method `GetPostsByUserIdAsync(string userId)`.
+- [x] Cập nhật `Backend/Repositories/PostRepository.cs`:
+  - Triển khai truy vấn lấy posts theo `userId`.
+  - Include đầy đủ `User`, `Comments`, `Likes`, `Hashtags` để tái sử dụng mapping hiện có.
+  - Sắp xếp `OrderByDescending(p => p.CreatedAt)`.
+- [x] Cập nhật `Backend/Services/Interfaces/IPostService.cs`:
+  - Thêm method `GetPostsByUserAsync(string targetUserId, int pageNumber, int pageSize, string? currentUserId = null)`.
+- [x] Cập nhật `Backend/Services/PostService.cs`:
+  - Thêm luồng phân trang cho danh sách bài viết của 1 user.
+  - Tái sử dụng logic mapping `ToPostResponse(...)` và `IsPostLikedByUser(...)` để giữ format response đồng nhất với Home Feed.
+- [x] Cập nhật `Backend/Controllers/PostsController.cs`:
+  - Thêm endpoint `GET /api/posts/user/{userId}` nhận `pageNumber`, `pageSize` qua query.
+  - Trả response chuẩn `ApiResponse.Success(...)`.
+
+### Xác minh
+
+- [x] Build backend pass:
+  - `dotnet build Backend/InteractHub.Api.csproj` -> `Build succeeded`.
+
+---
+
+## 18/04/2026 - Hashtags API: Trending Hashtags (Top 5)
+
+### Phần Backend đã thực hiện
+
+- [x] Tạo `Backend/Repositories/Interfaces/IHashtagRepository.cs`:
+  - Khai báo `Task<IEnumerable<string>> GetTrendingHashtagsAsync(int limit)`.
+- [x] Tạo `Backend/Repositories/HashtagRepository.cs`:
+  - Query hashtags có liên kết post (`Posts.Any()`).
+  - Sắp xếp theo số lượng post giảm dần (`OrderByDescending(hashtag.Posts.Count)`).
+  - Secondary sort theo tên hashtag (`ThenBy(Name)`) để ổn định dữ liệu.
+  - `Take(limit)` cho top hashtags.
+- [x] Tạo `Backend/Services/Interfaces/IHashtagsService.cs` + `Backend/Services/HashtagsService.cs`:
+  - Bọc business logic lấy trending hashtags và normalize giới hạn (default 5, max 20).
+- [x] Tạo `Backend/Controllers/HashtagsController.cs`:
+  - Thêm endpoint `GET /api/hashtags/trending`.
+  - Trả chuẩn `ApiResponse.Success(List<string>)`.
+- [x] Cập nhật `Backend/Program.cs`:
+  - Đăng ký DI: `IHashtagRepository -> HashtagRepository`, `IHashtagsService -> HashtagsService`.
+
+### Xác minh
+
+- [x] Build backend pass sau patch:
+  - `dotnet build Backend/InteractHub.Api.csproj` -> `Build succeeded`.

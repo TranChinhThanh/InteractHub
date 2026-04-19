@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
   deleteAllNotifications,
-  deleteNotification,
   getNotifications,
   markAsRead,
 } from "../services/notificationService";
@@ -40,6 +39,111 @@ const formatCreatedAt = (createdAt: string): string => {
     hour: "2-digit",
     minute: "2-digit",
   });
+};
+
+const splitNotificationContent = (
+  content: string,
+): { actor: string; detail: string } => {
+  const trimmedContent = content.trim();
+
+  if (trimmedContent.length === 0) {
+    return {
+      actor: "InteractHub",
+      detail: "",
+    };
+  }
+
+  const separators = [":", " đã ", " vừa ", " và "];
+
+  for (const separator of separators) {
+    const separatorIndex = trimmedContent.indexOf(separator);
+
+    if (separatorIndex <= 0) {
+      continue;
+    }
+
+    if (separator === ":") {
+      return {
+        actor: trimmedContent.slice(0, separatorIndex).trim(),
+        detail: trimmedContent.slice(separatorIndex + 1).trim(),
+      };
+    }
+
+    return {
+      actor: trimmedContent.slice(0, separatorIndex).trim(),
+      detail: trimmedContent.slice(separatorIndex + 1).trim(),
+    };
+  }
+
+  return {
+    actor: "",
+    detail: trimmedContent,
+  };
+};
+
+const getInitials = (name: string): string => {
+  const normalizedName = name.trim();
+
+  if (normalizedName.length === 0) {
+    return "IH";
+  }
+
+  const words = normalizedName.split(/\s+/).filter(Boolean);
+
+  if (words.length === 1) {
+    return words[0].slice(0, 2).toUpperCase();
+  }
+
+  return `${words[0].charAt(0)}${words[1].charAt(0)}`.toUpperCase();
+};
+
+const avatarBackgroundClasses = [
+  "bg-slate-700",
+  "bg-blue-700",
+  "bg-indigo-700",
+  "bg-teal-700",
+  "bg-gray-700",
+];
+
+const getAvatarClassName = (notificationId: number): string => {
+  return avatarBackgroundClasses[
+    Math.abs(notificationId) % avatarBackgroundClasses.length
+  ];
+};
+
+const getTypeBadge = (
+  type: string,
+): {
+  icon: string;
+  className: string;
+} => {
+  const normalizedType = type.toLowerCase();
+
+  if (normalizedType === "like") {
+    return {
+      icon: "favorite",
+      className: "bg-blue-500",
+    };
+  }
+
+  if (normalizedType === "comment") {
+    return {
+      icon: "chat",
+      className: "bg-green-500",
+    };
+  }
+
+  if (normalizedType === "follow") {
+    return {
+      icon: "person_add",
+      className: "bg-violet-500",
+    };
+  }
+
+  return {
+    icon: "campaign",
+    className: "bg-orange-500",
+  };
 };
 
 function NotificationsPage() {
@@ -87,16 +191,6 @@ function NotificationsPage() {
     },
   });
 
-  const deleteNotificationMutation = useMutation({
-    mutationFn: (id: number) => deleteNotification(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["notifications"] });
-    },
-    onError: (mutationError) => {
-      window.alert(getErrorMessage(mutationError, "Xóa thông báo thất bại."));
-    },
-  });
-
   const deleteAllNotificationsMutation = useMutation({
     mutationFn: deleteAllNotifications,
     onSuccess: () => {
@@ -140,14 +234,6 @@ function NotificationsPage() {
     deleteAllNotificationsMutation.mutate();
   };
 
-  const handleDeleteNotification = (notificationId: number) => {
-    if (isBulkActionPending || deleteNotificationMutation.isPending) {
-      return;
-    }
-
-    deleteNotificationMutation.mutate(notificationId);
-  };
-
   const handleNotificationClick = (notification: NotificationResponseDto) => {
     if (!notification) {
       return;
@@ -177,7 +263,7 @@ function NotificationsPage() {
 
   if (isLoading) {
     return (
-      <div className="rounded-xl bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         Đang tải thông báo...
       </div>
     );
@@ -185,7 +271,7 @@ function NotificationsPage() {
 
   if (isError) {
     return (
-      <div className="rounded-xl bg-red-50 p-6 text-red-600 shadow-sm">
+      <div className="rounded-3xl border border-red-100 bg-red-50 p-6 text-red-600 shadow-sm">
         {getErrorMessage(error, "Tải thông báo thất bại.")}
       </div>
     );
@@ -193,100 +279,106 @@ function NotificationsPage() {
 
   if (!notifications || notifications.length === 0) {
     return (
-      <div className="rounded-xl bg-white p-6 shadow-sm">
+      <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
         Chưa có thông báo nào.
       </div>
     );
   }
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <h1 className="text-xl font-semibold text-gray-900">Thông báo</h1>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleMarkAllAsRead}
-            disabled={!hasUnreadNotifications || isBulkActionPending}
-            className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 transition hover:border-blue-300 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isMarkingAllAsRead ? "Đang cập nhật..." : "Đánh dấu đã đọc hết"}
-          </button>
-          <button
-            type="button"
-            onClick={handleDeleteAllNotifications}
-            disabled={!hasNotifications || isBulkActionPending}
-            className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isDeletingAllNotifications ? "Đang xóa..." : "Xóa hết"}
-          </button>
-        </div>
+    <section className="space-y-5">
+      <h1 className="text-5xl font-bold tracking-tight text-gray-900">
+        Thông báo
+      </h1>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={handleMarkAllAsRead}
+          disabled={!hasUnreadNotifications || isBulkActionPending}
+          className="rounded-full bg-[#3f5d90] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#344d78] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isMarkingAllAsRead ? "Đang cập nhật..." : "Đánh dấu đã đọc hết"}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleDeleteAllNotifications}
+          disabled={!hasNotifications || isBulkActionPending}
+          className="rounded-full bg-red-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-red-300"
+        >
+          {isDeletingAllNotifications ? "Đang xóa..." : "Xóa hết"}
+        </button>
       </div>
 
-      <div className="space-y-3">
-        {notifications.map((notification) => {
+      <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+        {notifications.map((notification, index) => {
           const isUnread = !notification.isRead;
           const isMarkingAsRead =
             markAsReadMutation.isPending &&
             markAsReadMutation.variables === notification.id;
-          const isDeleting =
-            deleteNotificationMutation.isPending &&
-            deleteNotificationMutation.variables === notification.id;
           const isNotificationActionDisabled =
-            isMarkingAsRead || isDeleting || isBulkActionPending;
+            isMarkingAsRead || isBulkActionPending;
+
+          const { actor, detail } = splitNotificationContent(
+            notification.content,
+          );
+          const avatarSeed = actor.length > 0 ? actor : detail;
+          const initials = getInitials(avatarSeed);
+          const typeBadge = getTypeBadge(notification.type);
+          const hasBottomBorder = index < notifications.length - 1;
 
           return (
-            <div
+            <button
               key={notification.id}
-              className={`w-full rounded-xl border p-4 text-left shadow-sm transition ${
-                isUnread
-                  ? "border-blue-100 bg-blue-50 hover:border-blue-200"
-                  : "border-gray-200 bg-white"
-              } ${isNotificationActionDisabled ? "opacity-70" : ""}`}
+              type="button"
+              onClick={() => handleNotificationClick(notification)}
+              disabled={isNotificationActionDisabled}
+              className={`flex w-full items-start gap-3 px-5 py-4 text-left transition ${
+                hasBottomBorder ? "border-b border-gray-100" : ""
+              } ${
+                isNotificationActionDisabled
+                  ? "cursor-default opacity-70"
+                  : "hover:bg-gray-50"
+              }`}
             >
-              <div className="flex items-start justify-between gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleNotificationClick(notification)}
-                  disabled={isNotificationActionDisabled}
-                  className={`flex-1 text-left ${
-                    isNotificationActionDisabled
-                      ? "cursor-default"
-                      : "cursor-pointer"
-                  }`}
+              <div className="relative mt-0.5 shrink-0">
+                <span
+                  className={`flex h-11 w-11 items-center justify-center rounded-full text-sm font-semibold text-white ${getAvatarClassName(notification.id)}`}
                 >
-                  <p className="text-sm font-medium text-gray-800">
-                    {notification.content}
-                  </p>
-                  <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
-                    <span>{formatCreatedAt(notification.createdAt)}</span>
-                    <span
-                      className={`rounded-full px-2 py-0.5 font-medium ${
-                        isUnread
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-gray-100 text-gray-600"
-                      }`}
-                    >
-                      {isDeleting || isDeletingAllNotifications
-                        ? "Đang xóa..."
-                        : isUnread
-                          ? isNotificationActionDisabled
-                            ? "Đang cập nhật..."
-                            : "Chưa đọc"
-                          : "Đã đọc"}
-                    </span>
-                  </div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteNotification(notification.id)}
-                  disabled={isNotificationActionDisabled}
-                  className="rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+                  {initials}
+                </span>
+
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full ${typeBadge.className}`}
                 >
-                  {isDeleting ? "Đang xóa..." : "Xóa"}
-                </button>
+                  <span className="material-symbols-outlined text-[12px] text-white">
+                    {typeBadge.icon}
+                  </span>
+                </span>
               </div>
-            </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="line-clamp-2 text-[15px] leading-6 text-gray-700">
+                  {actor.length > 0 ? (
+                    <span className="font-semibold text-gray-900">{actor} </span>
+                  ) : null}
+                  <span>{detail}</span>
+                </p>
+
+                <p className="mt-1 text-xs text-gray-400">
+                  {isMarkingAsRead
+                    ? "Đang cập nhật..."
+                    : formatCreatedAt(notification.createdAt)}
+                </p>
+              </div>
+
+              <div className="mt-2 flex shrink-0 items-center justify-center pl-2">
+                {isUnread ? (
+                  <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                ) : null}
+              </div>
+            </button>
           );
         })}
       </div>

@@ -109,28 +109,19 @@ function StoriesBar() {
   };
 
   return (
-    <section className="space-y-4 rounded-xl bg-white p-4 shadow-sm">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-700">
-          Stories
-        </h2>
-        {isLoading ? (
-          <span className="text-xs text-gray-500">Đang tải tin...</span>
-        ) : null}
-      </div>
-
-      <div className="flex gap-4 overflow-x-auto pb-2">
+    <section className="space-y-4 rounded-3xl border border-gray-200 bg-white px-4 py-3 shadow-sm">
+      <div className="flex gap-4 overflow-x-auto pb-1">
         <button
           type="button"
           onClick={handleCreateStory}
           disabled={createStoryMutation.isPending}
           className="flex shrink-0 flex-col items-center gap-2 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-blue-500 bg-blue-50 text-2xl font-semibold text-blue-600">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-gray-50 text-2xl font-semibold text-gray-500">
             +
           </span>
-          <span className="max-w-16 text-center text-xs font-medium text-gray-700">
-            {createStoryMutation.isPending ? "Đang tạo" : "Tạo tin"}
+          <span className="max-w-16 text-center text-[11px] font-medium text-gray-500">
+            {createStoryMutation.isPending ? "Đang tạo" : "Thêm tin"}
           </span>
         </button>
 
@@ -152,7 +143,7 @@ function StoriesBar() {
                   className={`h-14 w-14 rounded-full object-cover ${
                     isActive
                       ? "ring-2 ring-blue-500 ring-offset-2"
-                      : "ring-1 ring-gray-200"
+                      : "ring-2 ring-blue-500/80 ring-offset-2"
                   }`}
                 />
               ) : (
@@ -160,20 +151,24 @@ function StoriesBar() {
                   className={`flex h-14 w-14 items-center justify-center rounded-full font-semibold text-white ${
                     isActive
                       ? "bg-blue-600 ring-2 ring-blue-500 ring-offset-2"
-                      : "bg-gray-500"
+                      : "bg-slate-500 ring-2 ring-blue-500/80 ring-offset-2"
                   }`}
                 >
                   {initials}
                 </div>
               )}
 
-              <span className="max-w-16 truncate text-xs font-medium text-gray-700">
+              <span className="max-w-16 truncate text-[11px] font-medium text-gray-700">
                 {story.userName}
               </span>
             </button>
           );
         })}
       </div>
+
+      {isLoading ? (
+        <p className="text-xs text-gray-500">Đang tải tin...</p>
+      ) : null}
 
       {isError ? (
         <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">
@@ -182,7 +177,7 @@ function StoriesBar() {
       ) : null}
 
       {activeStory !== null ? (
-        <div className="space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <div className="space-y-3 rounded-2xl border border-gray-200 bg-gray-50 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-sm text-gray-600">
@@ -202,7 +197,7 @@ function StoriesBar() {
                   type="button"
                   onClick={handleDeleteStory}
                   disabled={deleteStoryMutation.isPending}
-                  className="rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
+                  className="rounded-full bg-red-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300"
                 >
                   {deleteStoryMutation.isPending ? "Đang xóa..." : "Xóa tin"}
                 </button>
@@ -211,7 +206,7 @@ function StoriesBar() {
               <button
                 type="button"
                 onClick={() => setActiveStory(null)}
-                className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-gray-400"
+                className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:border-gray-400"
               >
                 Đóng
               </button>

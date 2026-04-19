@@ -48,6 +48,20 @@ public class PostRepository : GenericRepository<Post>, IPostRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Post>> GetPostsByUserIdAsync(string userId)
+    {
+        return await _context.Posts
+            .AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Include(p => p.User)
+            .Include(p => p.Comments)
+            .Include(p => p.Likes)
+            .Include(p => p.Hashtags)
+            .OrderByDescending(p => p.CreatedAt)
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+
     public async Task<Post?> GetPostWithDetailsByIdAsync(int id)
     {
         return await _context.Posts
