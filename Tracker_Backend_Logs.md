@@ -4,6 +4,31 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (20/04/2026) - T1 Integration Test cho Comments Workflow
+
+### Việc đã thực thi
+
+- [x] Cập nhật `Backend/Program.cs`:
+  - Thêm `public partial class Program { }` ở cuối file để `WebApplicationFactory<Program>` discover được entry point API.
+- [x] Cập nhật `Backend/InteractHub.Tests/InteractHub.Tests.csproj`:
+  - Thêm package `Microsoft.AspNetCore.Mvc.Testing` (v8.0.0).
+- [x] Tạo file mới `Backend/InteractHub.Tests/IntegrationTests/CommentsIntegrationTests.cs`:
+  - Dùng `WebApplicationFactory<Program>` theo `IClassFixture`.
+  - Viết test async `GetComments_ForAnyPost_ReturnsOkAndJsonResponse`.
+  - Tạo client bằng `_factory.CreateClient()`.
+  - Gọi `GET /api/comments/post/1`.
+  - Assert `HttpStatusCode.OK`.
+  - Assert Content-Type `application/json; charset=utf-8`.
+
+### Kết quả xác minh
+
+- [x] Chạy test toàn bộ project:
+  - `dotnet test Backend/InteractHub.Tests`
+- [x] Kết quả: **Total 16, Passed 16, Failed 0, Skipped 0**.
+- [x] Bao gồm đủ: **15 unit tests + 1 integration test**.
+
+---
+
 ## Cập nhật thực hiện mới nhất (20/04/2026) - B1 Seed Realistic Social Data for Testing
 
 ### Rà soát trước khi code (để tránh làm lại phần đã xong)
