@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import TextInput from "../components/common/TextInput";
 import { useAuth } from "../contexts/AuthContext";
 
 interface LoginFormValues {
@@ -43,41 +44,31 @@ function LoginPage() {
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              placeholder="Username"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
-              {...register("username", {
-                required: "Username là bắt buộc",
-              })}
-            />
-            {errors.username ? (
-              <p className="mt-1 text-red-500 text-sm">
-                {errors.username.message}
-              </p>
-            ) : null}
-          </div>
+          <TextInput
+            label="Username"
+            type="text"
+            placeholder="Username"
+            autoComplete="username"
+            error={errors.username?.message}
+            {...register("username", {
+              required: "Username là bắt buộc",
+            })}
+          />
 
-          <div>
-            <input
-              type="password"
-              placeholder="Mật khẩu"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
-              {...register("password", {
-                required: "Mật khẩu là bắt buộc",
-                minLength: {
-                  value: 6,
-                  message: "Mật khẩu phải có ít nhất 6 ký tự",
-                },
-              })}
-            />
-            {errors.password ? (
-              <p className="mt-1 text-red-500 text-sm">
-                {errors.password.message}
-              </p>
-            ) : null}
-          </div>
+          <TextInput
+            label="Mật khẩu"
+            type="password"
+            placeholder="Mật khẩu"
+            autoComplete="current-password"
+            error={errors.password?.message}
+            {...register("password", {
+              required: "Mật khẩu là bắt buộc",
+              minLength: {
+                value: 6,
+                message: "Mật khẩu phải có ít nhất 6 ký tự",
+              },
+            })}
+          />
 
           <button
             type="submit"

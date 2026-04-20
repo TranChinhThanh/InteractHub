@@ -19,6 +19,20 @@ namespace InteractHub.Api.Controllers
             _authService = authService;
         }
 
+        /// <summary>
+        /// Registers a new user account.
+        /// </summary>
+        /// <remarks>
+        /// Sample payload:
+        /// {
+        ///   "username": "newuser",
+        ///   "email": "newuser@example.com",
+        ///   "password": "Password123!",
+        ///   "fullName": "New User"
+        /// }
+        /// </remarks>
+        /// <param name="request">Registration payload containing identity and credential fields.</param>
+        /// <returns>A standardized success or failure API response.</returns>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto request)
         {
@@ -31,6 +45,18 @@ namespace InteractHub.Api.Controllers
             return Ok(ApiResponse.Success(new { message = result.Message }));
         }
 
+        /// <summary>
+        /// Authenticates a user and returns a JWT token.
+        /// </summary>
+        /// <remarks>
+        /// Sample payload:
+        /// {
+        ///   "username": "newuser",
+        ///   "password": "Password123!"
+        /// }
+        /// </remarks>
+        /// <param name="request">Login payload with username and password.</param>
+        /// <returns>A standardized success response containing JWT data, or an unauthorized error response.</returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto request)
         {

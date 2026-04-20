@@ -2,6 +2,7 @@ import { isAxiosError } from "axios";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router-dom";
+import TextInput from "../components/common/TextInput";
 import { register as registerUser } from "../services/authService";
 import type { ApiResponse, RegisterRequestDto } from "../types";
 
@@ -11,6 +12,64 @@ interface RegisterFormValues {
   username: string;
   password: string;
   confirmPassword: string;
+}
+
+interface PasswordStrength {
+  score: number;
+  label: string;
+  barClass: string;
+  textClass: string;
+}
+
+function getPasswordStrength(password: string): PasswordStrength {
+  let score = 0;
+
+  if (password.length >= 6) {
+    score += 25;
+  }
+
+  if (password.length >= 10) {
+    score += 20;
+  }
+
+  if (/[A-Z]/.test(password)) {
+    score += 20;
+  }
+
+  if (/[0-9]/.test(password)) {
+    score += 20;
+  }
+
+  if (/[^a-zA-Z0-9]/.test(password)) {
+    score += 15;
+  }
+
+  const normalizedScore = Math.min(score, 100);
+
+  if (normalizedScore >= 75) {
+    return {
+      score: normalizedScore,
+      label: "Mạnh",
+      barClass: "bg-emerald-500",
+      textClass: "text-emerald-600",
+    };
+  }
+
+  if (normalizedScore >= 40) {
+    return {
+      score: normalizedScore,
+      label: "Trung bình",
+      barClass: "bg-amber-400",
+      textClass: "text-amber-600",
+    };
+  }
+
+  return {
+    score: normalizedScore,
+    label: "Yếu",
+    barClass: "bg-rose-500",
+    textClass: "text-rose-600",
+  };
 }
 
 function RegisterPage() {
@@ -25,6 +84,7 @@ function RegisterPage() {
   } = useForm<RegisterFormValues>();
 
   const passwordValue = watch("password");
+  const passwordStrength = getPasswordStrength(passwordValue ?? "");
 
   const onSubmit = async (data: RegisterFormValues) => {
     setErrorMsg("");
@@ -74,63 +134,50 @@ function RegisterPage() {
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <input
-              type="text"
-              placeholder="Họ và tên"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
-              {...register("fullName", {
-                required: "Họ và tên là bắt buộc",
-              })}
-            />
-            {errors.fullName ? (
-              <p className="mt-1 text-red-500 text-sm">
-                {errors.fullName.message}
-              </p>
-            ) : null}
-          </div>
+          <TextInput
+            label="Họ và tên"
+            type="text"
+            placeholder="Họ và tên"
+            autoComplete="name"
+            error={errors.fullName?.message}
+            {...register("fullName", {
+              required: "Họ và tên là bắt buộc",
+            })}
+          />
 
-          <div>
-            <input
-              type="email"
-              placeholder="Email"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
-              {...register("email", {
-                required: "Email là bắt buộc",
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                  message: "Email không hợp lệ",
-                },
-              })}
-            />
-            {errors.email ? (
-              <p className="mt-1 text-red-500 text-sm">
-                {errors.email.message}
-              </p>
-            ) : null}
-          </div>
+          <TextInput
+            label="Email"
+            type="email"
+            placeholder="Email"
+            autoComplete="email"
+            error={errors.email?.message}
+            {...register("email", {
+              required: "Email là bắt buộc",
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: "Email không hợp lệ",
+              },
+            })}
+          />
 
-          <div>
-            <input
-              type="text"
-              placeholder="Username"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
-              {...register("username", {
-                required: "Username là bắt buộc",
-              })}
-            />
-            {errors.username ? (
-              <p className="mt-1 text-red-500 text-sm">
-                {errors.username.message}
-              </p>
-            ) : null}
-          </div>
+          <TextInput
+            label="Username"
+            type="text"
+            placeholder="Username"
+            autoComplete="username"
+            error={errors.username?.message}
+            {...register("username", {
+              required: "Username là bắt buộc",
+            })}
+          />
 
-          <div>
-            <input
+          <div className="space-y-2">
+            <TextInput
+              label="Mật khẩu"
               type="password"
               placeholder="Mật khẩu"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
+              autoComplete="new-password"
+              error={errors.password?.message}
               {...register("password", {
                 required: "Mật khẩu là bắt buộc",
                 minLength: {
@@ -139,30 +186,32 @@ function RegisterPage() {
                 },
               })}
             />
-            {errors.password ? (
-              <p className="mt-1 text-red-500 text-sm">
-                {errors.password.message}
+
+            <div className="space-y-1">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${passwordStrength.barClass}`}
+                  style={{ width: `${passwordStrength.score}%` }}
+                />
+              </div>
+              <p className={`text-xs font-medium ${passwordStrength.textClass}`}>
+                Độ mạnh mật khẩu: {passwordStrength.label} ({passwordStrength.score}%)
               </p>
-            ) : null}
+            </div>
           </div>
 
-          <div>
-            <input
-              type="password"
-              placeholder="Nhập lại mật khẩu"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 outline-none focus:border-blue-500"
-              {...register("confirmPassword", {
-                required: "Xác nhận mật khẩu là bắt buộc",
-                validate: (value) =>
-                  value === passwordValue || "Mật khẩu xác nhận không khớp",
-              })}
-            />
-            {errors.confirmPassword ? (
-              <p className="mt-1 text-red-500 text-sm">
-                {errors.confirmPassword.message}
-              </p>
-            ) : null}
-          </div>
+          <TextInput
+            label="Nhập lại mật khẩu"
+            type="password"
+            placeholder="Nhập lại mật khẩu"
+            autoComplete="new-password"
+            error={errors.confirmPassword?.message}
+            {...register("confirmPassword", {
+              required: "Xác nhận mật khẩu là bắt buộc",
+              validate: (value) =>
+                value === passwordValue || "Mật khẩu xác nhận không khớp",
+            })}
+          />
 
           <button
             type="submit"
