@@ -122,6 +122,7 @@ function CommentSection({ postId, currentUserId }: CommentSectionProps) {
                     <img
                       src={comment.userAvatarUrl}
                       alt={comment.userName}
+                      loading="lazy"
                       className="mt-0.5 h-7 w-7 rounded-full object-cover"
                     />
                   ) : (

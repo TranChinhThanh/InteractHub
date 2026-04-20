@@ -27,52 +27,16 @@ function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <MainLayout>
-                  <HomePage />
-                </MainLayout>
+                <MainLayout />
               </ProtectedRoute>
             }
-          />
-          <Route
-            path="/profile/:userId"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <ProfilePage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/notifications"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <NotificationsPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/search"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <SearchPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/posts/:postId"
-            element={
-              <ProtectedRoute>
-                <MainLayout>
-                  <PostDetailPage />
-                </MainLayout>
-              </ProtectedRoute>
-            }
-          />
+          >
+            <Route index element={<HomePage />} />
+            <Route path="profile/:userId" element={<ProfilePage />} />
+            <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="search" element={<SearchPage />} />
+            <Route path="posts/:postId" element={<PostDetailPage />} />
+          </Route>
         </Routes>
       </Suspense>
     </BrowserRouter>

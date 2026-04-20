@@ -240,6 +240,7 @@ function ProfilePage() {
               <img
                 src={profile.avatarUrl}
                 alt={profile.userName}
+                loading="lazy"
                 className="h-24 w-24 rounded-2xl border-4 border-white object-cover shadow-sm"
               />
             ) : (
@@ -364,6 +365,7 @@ function ProfilePage() {
                           <img
                             src={follower.avatarUrl}
                             alt={displayName}
+                            loading="lazy"
                             className="h-full w-full object-cover"
                           />
                         ) : (
@@ -410,6 +412,7 @@ function ProfilePage() {
                           <img
                             src={followingUser.avatarUrl}
                             alt={displayName}
+                            loading="lazy"
                             className="h-full w-full object-cover"
                           />
                         ) : (

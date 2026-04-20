@@ -208,6 +208,7 @@ function PostCard({ post, currentUserId }: PostCardProps) {
             <img
               src={post.userAvatarUrl}
               alt={post.userName}
+              loading="lazy"
               className="h-10 w-10 rounded-full object-cover"
             />
           ) : (
@@ -238,6 +239,7 @@ function PostCard({ post, currentUserId }: PostCardProps) {
         <img
           src={post.imageUrl}
           alt="Post"
+          loading="lazy"
           className="mt-4 max-h-[420px] w-full rounded-2xl border border-gray-100 object-cover"
         />
       ) : null}

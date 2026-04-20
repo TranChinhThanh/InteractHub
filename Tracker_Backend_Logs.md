@@ -4,6 +4,29 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (20/04/2026) - B2 Polish Validation + Swagger XML Docs
+
+### Việc đã thực thi
+
+- [x] Cập nhật `Backend/DTOs/Users/UpdateProfileDto.cs`:
+  - Bổ sung DataAnnotations validation cho profile update.
+  - `Bio`: `MaxLength(500)`.
+  - `AvatarUrl`: `Url` + `MaxLength(1000)`.
+- [x] Cập nhật `Backend/InteractHub.Api.csproj`:
+  - Bật `GenerateDocumentationFile` để sinh XML docs khi build.
+  - Thêm `NoWarn` cho warning thiếu XML comments (`1591`) để không làm nhiễu build output.
+- [x] Cập nhật `Backend/Program.cs`:
+  - Cấu hình Swagger đọc XML comments bằng `IncludeXmlComments(...)` từ file XML sinh ra theo assembly.
+- [x] Cập nhật `Backend/Controllers/AuthController.cs`:
+  - Bổ sung XML comments cho endpoint register/login (summary + remarks + payload mẫu) để tăng chất lượng tài liệu API.
+
+### Kết quả xác minh
+
+- [x] Build backend thành công sau thay đổi (`dotnet build`).
+- [x] Trạng thái: hoàn tất polish B2 cho validation DTO và nền tài liệu Swagger XML.
+
+---
+
 ## Cập nhật thực hiện mới nhất (20/04/2026) - B1 Seed Initial Data
 
 ### Việc đã thực thi

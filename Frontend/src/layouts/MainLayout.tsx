@@ -1,13 +1,9 @@
-import type { ReactNode } from "react";
+import { Outlet } from "react-router-dom";
 import LeftSidebar from "../components/LeftSidebar";
 import Navbar from "../components/Navbar";
 import RightSidebar from "../components/RightSidebar";
 
-interface MainLayoutProps {
-  children: ReactNode;
-}
-
-function MainLayout({ children }: MainLayoutProps) {
+function MainLayout() {
   return (
     <div className="min-h-screen bg-[#f3f4f6]">
       <Navbar />
@@ -19,7 +15,9 @@ function MainLayout({ children }: MainLayoutProps) {
           </div>
         </aside>
 
-        <main className="min-h-[calc(100vh-7rem)]">{children}</main>
+        <main className="min-h-[calc(100vh-7rem)]">
+          <Outlet />
+        </main>
 
         <aside className="hidden lg:block">
           <div className="sticky top-20">

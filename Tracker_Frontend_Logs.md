@@ -2,6 +2,21 @@
 
 [⬅ Quay lại Master Plan](./Master_Plan_Tracker.md)
 
+## 20/04/2026 - Refactor Nested Routes Thật Sự + Image Lazy Loading (Phase 4/5)
+
+- Cập nhật `src/layouts/MainLayout.tsx`:
+  - Bỏ render qua `children` và chuyển sang `Outlet` từ `react-router-dom` để render route con theo layout.
+- Cập nhật `src/App.tsx`:
+  - Refactor cây route sang nested route chuẩn: route cha protected `/` bọc `MainLayout`.
+  - Khai báo route con dưới layout gồm: `index` (Home), `/profile/:userId`, `/notifications`, `/search`, `/posts/:postId`.
+  - Giữ `/login` và `/register` là public routes.
+- Cập nhật lazy loading cho ảnh để tối ưu tải trang:
+  - `src/components/PostCard.tsx`: thêm `loading="lazy"` cho các thẻ `img` hiển thị ảnh bài viết/avatar.
+  - `src/pages/ProfilePage.tsx`: thêm `loading="lazy"` cho ảnh avatar và ảnh trong danh sách followers/following.
+  - `src/components/CommentSection.tsx`: thêm `loading="lazy"` cho avatar comment.
+- Kết quả kiểm tra:
+  - `npm run build`: pass.
+
 ## 20/04/2026 - F4 Loading Skeletons cho Home/Profile (Perceived Performance)
 
 - Tạo mới `src/components/PostSkeleton.tsx` mô phỏng khung `PostCard`:
