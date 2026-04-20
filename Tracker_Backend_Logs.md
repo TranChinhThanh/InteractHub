@@ -4,6 +4,29 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (20/04/2026) - B1 Seed Initial Data
+
+### Việc đã thực thi
+
+- [x] Tạo mới file `Backend/Data/DbSeeder.cs` với method `public static async Task SeedDataAsync(IServiceProvider serviceProvider)`.
+- [x] Trong `DbSeeder`, resolve đầy đủ `RoleManager<IdentityRole>` và `UserManager<ApplicationUser>` từ DI scope.
+- [x] Seed role bắt buộc: `AppRoles.Admin` và `AppRoles.User` (chỉ tạo khi chưa tồn tại).
+- [x] Seed tài khoản admin mặc định nếu chưa có:
+  - Username: `admin`
+  - Email: `admin@interacthub.com`
+  - Password: `Admin@123`
+  - FullName: `System Admin`
+- [x] Gán role `Admin` cho tài khoản admin (idempotent, chỉ add role khi user chưa thuộc role).
+- [x] Cập nhật `Backend/Program.cs`: ngay sau `var app = builder.Build();` tạo scope và gọi `await DbSeeder.SeedDataAsync(scope.ServiceProvider)` trong `try-catch`, log lỗi qua `app.Logger.LogError(...)`.
+- [x] Loại bỏ hàm local cũ `SeedRolesAsync` để tránh trùng logic seed.
+
+### Kết quả xác minh
+
+- [x] Build backend thành công sau thay đổi (`dotnet build`).
+- [x] Trạng thái B1 (seed initial data): **DONE**.
+
+---
+
 ## Cập nhật thực hiện mới nhất (20/04/2026) - Verify Coverage cho Requirement T1
 
 ### Các lệnh đã chạy

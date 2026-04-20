@@ -220,7 +220,15 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-await SeedRolesAsync(app.Services);
+try
+{
+    using var scope = app.Services.CreateScope();
+    await DbSeeder.SeedDataAsync(scope.ServiceProvider);
+}
+catch (Exception ex)
+{
+    app.Logger.LogError(ex, "An error occurred while seeding initial data.");
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -241,25 +249,3 @@ app.MapControllers();
 app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
-
-static async Task SeedRolesAsync(IServiceProvider services)
-{
-    using var scope = services.CreateScope();
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-
-    foreach (var roleName in AppRoles.All)
-    {
-        var exists = await roleManager.RoleExistsAsync(roleName);
-        if (exists)
-        {
-            continue;
-        }
-
-        var result = await roleManager.CreateAsync(new IdentityRole(roleName));
-        if (!result.Succeeded)
-        {
-            var error = result.Errors.FirstOrDefault()?.Description ?? "Unknown role creation error.";
-            throw new InvalidOperationException($"Failed to seed role '{roleName}': {error}");
-        }
-    }
-}
