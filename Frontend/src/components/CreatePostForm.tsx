@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useEffect, useMemo, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import FileInput from "./common/FileInput";
 import { useAuth } from "../contexts/AuthContext";
 import { createPost } from "../services/postService";
 import type { ApiResponse } from "../types";
@@ -110,7 +111,7 @@ function CreatePostForm() {
     return "Đăng bài thất bại.";
   })();
 
-  const imageRegister = register("image");
+  const { ref: imageFieldRef, ...imageFieldProps } = register("image");
   const userInitial = user?.username?.trim().charAt(0).toUpperCase() || "U";
 
   return (
@@ -142,13 +143,13 @@ function CreatePostForm() {
           </div>
         </div>
 
-        <input
-          type="file"
+        <FileInput
+          id="create-post-image"
           accept="image/jpeg, image/png, image/webp"
           className="hidden"
-          {...imageRegister}
+          {...imageFieldProps}
           ref={(element) => {
-            imageRegister.ref(element);
+            imageFieldRef(element);
             imageInputRef.current = element;
           }}
         />

@@ -80,7 +80,7 @@ function RegisterPage() {
     register,
     handleSubmit,
     watch,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<RegisterFormValues>();
 
   const passwordValue = watch("password");
@@ -194,8 +194,11 @@ function RegisterPage() {
                   style={{ width: `${passwordStrength.score}%` }}
                 />
               </div>
-              <p className={`text-xs font-medium ${passwordStrength.textClass}`}>
-                Độ mạnh mật khẩu: {passwordStrength.label} ({passwordStrength.score}%)
+              <p
+                className={`text-xs font-medium ${passwordStrength.textClass}`}
+              >
+                Độ mạnh mật khẩu: {passwordStrength.label} (
+                {passwordStrength.score}%)
               </p>
             </div>
           </div>
@@ -215,9 +218,10 @@ function RegisterPage() {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
+            disabled={isSubmitting}
+            className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
           >
-            Đăng ký
+            {isSubmitting ? "Đang xử lý..." : "Đăng ký"}
           </button>
 
           {errorMsg ? <p className="text-red-500">{errorMsg}</p> : null}

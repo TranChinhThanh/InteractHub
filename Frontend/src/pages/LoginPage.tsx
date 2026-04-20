@@ -17,7 +17,7 @@ function LoginPage() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<LoginFormValues>();
 
   const onSubmit = async (data: LoginFormValues) => {
@@ -72,9 +72,10 @@ function LoginPage() {
 
           <button
             type="submit"
-            className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700"
+            disabled={isSubmitting}
+            className="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
           >
-            Đăng nhập
+            {isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
           </button>
 
           {errorMsg ? (

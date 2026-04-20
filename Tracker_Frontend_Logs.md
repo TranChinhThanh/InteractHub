@@ -2,6 +2,24 @@
 
 [⬅ Quay lại Master Plan](./Master_Plan_Tracker.md)
 
+## 20/04/2026 - F3 Forms & Validation Audit + Hoàn tất FileInput/Loading State
+
+- Rà soát 3 task F3 theo yêu cầu và đối chiếu code hiện tại:
+  - Password strength indicator trong `RegisterPage` đã có sẵn từ trước (`watch("password")`, chấm điểm theo regex, hiển thị `Yếu/Trung bình/Mạnh`).
+  - `ProfilePage` hiện không có `input type="file"` hardcoded (form profile đang dùng `avatarUrl` dạng text URL), nên không có điểm cần replace trong file này ở trạng thái hiện tại.
+  - `CreatePostForm` còn `input type="file"` hardcoded -> cần refactor.
+- Tạo mới `src/components/common/FileInput.tsx`:
+  - Dùng `forwardRef` để tương thích với React Hook Form.
+  - Hỗ trợ props `label`, `error`, `accept`, `onChange` và toàn bộ input attributes chuẩn.
+- Refactor `src/components/CreatePostForm.tsx`:
+  - Thay hardcoded `input type="file"` bằng `<FileInput />`.
+  - Giữ nguyên luồng preview ảnh (`useWatch` + `URL.createObjectURL` + cleanup `URL.revokeObjectURL`) và logic nút `Thêm ảnh`/`X` xóa ảnh.
+- Cập nhật loading states submit:
+  - `src/pages/LoginPage.tsx`: dùng `formState.isSubmitting`, disable button khi submit và đổi text thành `Đang xử lý...`.
+  - `src/pages/RegisterPage.tsx`: dùng `formState.isSubmitting`, disable button khi submit và đổi text thành `Đang xử lý...`.
+- Kết quả kiểm tra:
+  - `npm run build`: pass (không lỗi TypeScript).
+
 ## 20/04/2026 - Refactor Nested Routes Thật Sự + Image Lazy Loading (Phase 4/5)
 
 - Cập nhật `src/layouts/MainLayout.tsx`:
