@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useParams } from "react-router-dom";
 import PostCard from "../components/PostCard";
+import PostSkeleton from "../components/PostSkeleton";
 import { useAuth } from "../contexts/AuthContext";
 import {
   followUser,
@@ -510,8 +511,10 @@ function ProfilePage() {
         <h2 className="text-lg font-semibold text-gray-900">Bài viết</h2>
 
         {isUserPostsLoading ? (
-          <div className="mt-3 rounded-xl bg-gray-50 p-4 text-sm text-gray-600">
-            Đang tải bài viết...
+          <div className="mt-4 space-y-4">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <PostSkeleton key={`profile-post-skeleton-${index}`} />
+            ))}
           </div>
         ) : null}
 

@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<coverage line-rate="1" branch-rate="0.5" version="1.9" timestamp="1776644866" lines-covered="45" lines-valid="45" branches-covered="3" branches-valid="6">
+  <sources>
+    <source>C:\Users\GIGABYTE\Desktop\DoAnCShartp\InteractHub\Backend\Services\</source>
+  </sources>
+  <packages>
+    <package name="InteractHub.Api" line-rate="1" branch-rate="0.5" complexity="9">
+      <classes>
+        <class name="InteractHub.Api.Services.AuthService" filename="AuthService.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(Microsoft.AspNetCore.Identity.UserManager`1&lt;InteractHub.Api.Models.ApplicationUser&gt;,InteractHub.Api.Services.Interfaces.ITokenService)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="14" hits="5" branch="False" />
+                <line number="15" hits="5" branch="False" />
+                <line number="16" hits="5" branch="False" />
+                <line number="17" hits="5" branch="False" />
+                <line number="18" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="14" hits="5" branch="False" />
+            <line number="15" hits="5" branch="False" />
+            <line number="16" hits="5" branch="False" />
+            <line number="17" hits="5" branch="False" />
+            <line number="18" hits="5" branch="False" />
+          </lines>
+        </class>
+        <class name="InteractHub.Api.Services.CommentsService" filename="CommentsService.cs" line-rate="1" branch-rate="0.5" complexity="7">
+          <methods>
+            <method name="ToCommentResponse" signature="(InteractHub.Api.Models.Comment,InteractHub.Api.Models.ApplicationUser)" line-rate="1" branch-rate="0.5" complexity="6">
+              <lines>
+                <line number="140" hits="1" branch="False" />
+                <line number="141" hits="1" branch="True" condition-coverage="50% (3/6)">
+                  <conditions>
+                    <condition number="47" type="jump" coverage="50%" />
+                    <condition number="59" type="jump" coverage="50%" />
+                    <condition number="75" type="jump" coverage="50%" />
+                  </conditions>
+                </line>
+                <line number="142" hits="1" branch="False" />
+                <line number="143" hits="1" branch="False" />
+                <line number="144" hits="1" branch="False" />
+                <line number="145" hits="1" branch="False" />
+                <line number="146" hits="1" branch="False" />
+                <line number="147" hits="1" branch="False" />
+                <line number="148" hits="1" branch="False" />
+                <line number="149" hits="1" branch="False" />
+                <line number="150" hits="1" branch="False" />
+                <line number="151" hits="1" branch="False" />
+              </lines>
+            </method>
+            <method name=".ctor" signature="(InteractHub.Api.Repositories.Interfaces.ICommentRepository,InteractHub.Api.Repositories.Interfaces.IPostRepository,InteractHub.Api.Repositories.Interfaces.INotificationRepository,Microsoft.AspNetCore.SignalR.IHubContext`1&lt;InteractHub.Api.Hubs.NotificationHub&gt;,Microsoft.AspNetCore.Identity.UserManager`1&lt;InteractHub.Api.Models.ApplicationUser&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="21" hits="5" branch="False" />
+                <line number="22" hits="5" branch="False" />
+                <line number="23" hits="5" branch="False" />
+                <line number="24" hits="5" branch="False" />
+                <line number="25" hits="5" branch="False" />
+                <line number="26" hits="5" branch="False" />
+                <line number="27" hits="5" branch="False" />
+                <line number="28" hits="5" branch="False" />
+                <line number="29" hits="5" branch="False" />
+                <line number="30" hits="5" branch="False" />
+                <line number="31" hits="5" branch="False" />
+                <line number="32" hits="5" branch="False" />
+                <line number="33" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="140" hits="1" branch="False" />
+            <line number="141" hits="1" branch="True" condition-coverage="50% (3/6)">
+              <conditions>
+                <condition number="47" type="jump" coverage="50%" />
+                <condition number="59" type="jump" coverage="50%" />
+                <condition number="75" type="jump" coverage="50%" />
+              </conditions>
+            </line>
+            <line number="142" hits="1" branch="False" />
+            <line number="143" hits="1" branch="False" />
+            <line number="144" hits="1" branch="False" />
+            <line number="145" hits="1" branch="False" />
+            <line number="146" hits="1" branch="False" />
+            <line number="147" hits="1" branch="False" />
+            <line number="148" hits="1" branch="False" />
+            <line number="149" hits="1" branch="False" />
+            <line number="150" hits="1" branch="False" />
+            <line number="151" hits="1" branch="False" />
+            <line number="21" hits="5" branch="False" />
+            <line number="22" hits="5" branch="False" />
+            <line number="23" hits="5" branch="False" />
+            <line number="24" hits="5" branch="False" />
+            <line number="25" hits="5" branch="False" />
+            <line number="26" hits="5" branch="False" />
+            <line number="27" hits="5" branch="False" />
+            <line number="28" hits="5" branch="False" />
+            <line number="29" hits="5" branch="False" />
+            <line number="30" hits="5" branch="False" />
+            <line number="31" hits="5" branch="False" />
+            <line number="32" hits="5" branch="False" />
+            <line number="33" hits="5" branch="False" />
+          </lines>
+        </class>
+        <class name="InteractHub.Api.Services.LikesService" filename="LikesService.cs" line-rate="1" branch-rate="1" complexity="1">
+          <methods>
+            <method name=".ctor" signature="(InteractHub.Api.Repositories.Interfaces.ILikeRepository,InteractHub.Api.Repositories.Interfaces.IPostRepository,InteractHub.Api.Repositories.Interfaces.ICommentRepository,InteractHub.Api.Repositories.Interfaces.INotificationRepository,Microsoft.AspNetCore.SignalR.IHubContext`1&lt;InteractHub.Api.Hubs.NotificationHub&gt;,Microsoft.AspNetCore.Identity.UserManager`1&lt;InteractHub.Api.Models.ApplicationUser&gt;)" line-rate="1" branch-rate="1" complexity="1">
+              <lines>
+                <line number="20" hits="5" branch="False" />
+                <line number="21" hits="5" branch="False" />
+                <line number="22" hits="5" branch="False" />
+                <line number="23" hits="5" branch="False" />
+                <line number="24" hits="5" branch="False" />
+                <line number="25" hits="5" branch="False" />
+                <line number="26" hits="5" branch="False" />
+                <line number="27" hits="5" branch="False" />
+                <line number="28" hits="5" branch="False" />
+                <line number="29" hits="5" branch="False" />
+                <line number="30" hits="5" branch="False" />
+                <line number="31" hits="5" branch="False" />
+                <line number="32" hits="5" branch="False" />
+                <line number="33" hits="5" branch="False" />
+                <line number="34" hits="5" branch="False" />
+              </lines>
+            </method>
+          </methods>
+          <lines>
+            <line number="20" hits="5" branch="False" />
+            <line number="21" hits="5" branch="False" />
+            <line number="22" hits="5" branch="False" />
+            <line number="23" hits="5" branch="False" />
+            <line number="24" hits="5" branch="False" />
+            <line number="25" hits="5" branch="False" />
+            <line number="26" hits="5" branch="False" />
+            <line number="27" hits="5" branch="False" />
+            <line number="28" hits="5" branch="False" />
+            <line number="29" hits="5" branch="False" />
+            <line number="30" hits="5" branch="False" />
+            <line number="31" hits="5" branch="False" />
+            <line number="32" hits="5" branch="False" />
+            <line number="33" hits="5" branch="False" />
+            <line number="34" hits="5" branch="False" />
+          </lines>
+        </class>
+      </classes>
+    </package>
+  </packages>
+</coverage>

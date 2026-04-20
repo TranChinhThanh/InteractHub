@@ -2,6 +2,20 @@
 
 [⬅ Quay lại Master Plan](./Master_Plan_Tracker.md)
 
+## 20/04/2026 - F4 Loading Skeletons cho Home/Profile (Perceived Performance)
+
+- Tạo mới `src/components/PostSkeleton.tsx` mô phỏng khung `PostCard`:
+  - Avatar tròn (`rounded-full`),
+  - Các dòng tên/thời gian,
+  - Khối nội dung + ảnh lớn,
+  - Các khối action nhỏ ở footer.
+- Áp dụng Tailwind skeleton style theo yêu cầu: `animate-pulse`, `bg-gray-200`, `rounded-full`, `rounded-md`.
+- Cập nhật `src/pages/HomePage.tsx`:
+  - Khi `isLoading` của `useInfiniteQuery` là `true`, render 3 `<PostSkeleton />` thay cho text loading cũ.
+- Cập nhật `src/pages/ProfilePage.tsx`:
+  - Khi `isUserPostsLoading` là `true`, render 3 `<PostSkeleton />` ở section `Bài viết`.
+- Mục tiêu đạt được: cải thiện cảm nhận tốc độ tải dữ liệu cho requirement F4 (loading skeletons).
+
 ## 08/04/2026 - Scaffold Layout, Routing, Login UI (Phase 4)
 
 - Đã đọc lại `Project_Rules_And_Architecture.md` trước khi triển khai để bám đúng stack và quy tắc frontend.

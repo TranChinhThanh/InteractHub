@@ -1,6 +1,7 @@
 import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import CreatePostForm from "../components/CreatePostForm";
 import PostCard from "../components/PostCard";
+import PostSkeleton from "../components/PostSkeleton";
 import StoriesBar from "../components/StoriesBar";
 import { useAuth } from "../contexts/AuthContext";
 import { getPosts } from "../services/postService";
@@ -39,8 +40,10 @@ function HomePage() {
       <div className="space-y-5">
         <StoriesBar />
         <CreatePostForm />
-        <div className="rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-          Đang tải danh sách bài viết...
+        <div className="space-y-5">
+          {Array.from({ length: 3 }).map((_, index) => (
+            <PostSkeleton key={`home-post-skeleton-${index}`} />
+          ))}
         </div>
       </div>
     );
