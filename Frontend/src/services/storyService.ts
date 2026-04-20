@@ -1,5 +1,10 @@
 import axiosClient from "../api/axiosClient";
-import type { ApiResponse, CreateStoryDto, StoryResponseDto } from "../types";
+import type {
+  ApiResponse,
+  CreateStoryDto,
+  StoryResponseDto,
+  SuccessMessageData,
+} from "../types";
 
 export const getActiveStories = async (): Promise<StoryResponseDto[]> => {
   const response =
@@ -19,10 +24,12 @@ export const createStory = async (
   return response.data;
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const deleteStory = async (id: number): Promise<ApiResponse<any>> => {
-  const response = await axiosClient.delete<ApiResponse<any>>(`/stories/${id}`);
+export const deleteStory = async (
+  id: number,
+): Promise<ApiResponse<SuccessMessageData>> => {
+  const response = await axiosClient.delete<ApiResponse<SuccessMessageData>>(
+    `/stories/${id}`,
+  );
 
   return response.data;
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */

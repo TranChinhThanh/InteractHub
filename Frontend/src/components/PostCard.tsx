@@ -63,6 +63,10 @@ const mapInfinitePosts = (
   };
 };
 
+interface LikeMutationContext {
+  previousPosts?: InfiniteData<PostResponseDto[], number>;
+}
+
 function PostCard({ post, currentUserId }: PostCardProps) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
@@ -98,27 +102,40 @@ function PostCard({ post, currentUserId }: PostCardProps) {
 
   const likeMutation = useMutation({
     mutationFn: () => togglePostLike(post.id),
-    onSuccess: (response) => {
-      const delta = response.data.isLiked ? 1 : -1;
+    onMutate: async (): Promise<LikeMutationContext> => {
+      await queryClient.cancelQueries({ queryKey: ["posts"] });
 
-      queryClient.setQueriesData<InfiniteData<PostResponseDto[], number>>(
-        { queryKey: ["posts"] },
+      const previousPosts = queryClient.getQueryData<
+        InfiniteData<PostResponseDto[], number>
+      >(["posts"]);
+
+      queryClient.setQueryData<InfiniteData<PostResponseDto[], number>>(
+        ["posts"],
         (oldData) =>
-          mapInfinitePosts(oldData, (item) =>
-            item.id === post.id
-              ? {
-                  ...item,
-                  likeCount: Math.max(0, item.likeCount + delta),
-                  isLikedByCurrentUser: response.data.isLiked,
-                }
-              : item,
-          ),
+          mapInfinitePosts(oldData, (item) => {
+            if (item.id !== post.id) {
+              return item;
+            }
+
+            const nextIsLiked = !item.isLikedByCurrentUser;
+            const delta = nextIsLiked ? 1 : -1;
+
+            return {
+              ...item,
+              isLikedByCurrentUser: nextIsLiked,
+              likeCount: Math.max(0, item.likeCount + delta),
+            };
+          }),
       );
 
-      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      return { previousPosts };
     },
-    onError: (error) => {
+    onError: (error, _variables, context) => {
+      queryClient.setQueryData(["posts"], context?.previousPosts);
       window.alert(getErrorMessage(error, "Thả tim thất bại."));
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
   });
 

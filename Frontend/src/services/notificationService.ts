@@ -1,5 +1,10 @@
 import axiosClient from "../api/axiosClient";
-import type { ApiResponse, NotificationResponseDto } from "../types";
+import type {
+  ApiResponse,
+  DeleteAllNotificationsResponseData,
+  NotificationResponseDto,
+  SuccessMessageData,
+} from "../types";
 
 export const getNotifications = async (): Promise<
   NotificationResponseDto[]
@@ -12,8 +17,10 @@ export const getNotifications = async (): Promise<
   return response.data.data;
 };
 
-export const markAsRead = async (id: number): Promise<ApiResponse<unknown>> => {
-  const response = await axiosClient.put<ApiResponse<unknown>>(
+export const markAsRead = async (
+  id: number,
+): Promise<ApiResponse<SuccessMessageData>> => {
+  const response = await axiosClient.put<ApiResponse<SuccessMessageData>>(
     `/notifications/${id}/read`,
   );
 
@@ -22,8 +29,8 @@ export const markAsRead = async (id: number): Promise<ApiResponse<unknown>> => {
 
 export const deleteNotification = async (
   id: number,
-): Promise<ApiResponse<unknown>> => {
-  const response = await axiosClient.delete<ApiResponse<unknown>>(
+): Promise<ApiResponse<SuccessMessageData>> => {
+  const response = await axiosClient.delete<ApiResponse<SuccessMessageData>>(
     `/notifications/${id}`,
   );
 
@@ -31,11 +38,12 @@ export const deleteNotification = async (
 };
 
 export const deleteAllNotifications = async (): Promise<
-  ApiResponse<unknown>
+  ApiResponse<DeleteAllNotificationsResponseData>
 > => {
-  const response = await axiosClient.delete<ApiResponse<unknown>>(
-    "/notifications",
-  );
+  const response =
+    await axiosClient.delete<ApiResponse<DeleteAllNotificationsResponseData>>(
+      "/notifications",
+    );
 
   return response.data;
 };

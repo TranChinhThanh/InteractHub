@@ -3,6 +3,7 @@ import type {
   ApiResponse,
   PostListResponseData,
   PostResponseDto,
+  SuccessMessageData,
 } from "../types";
 
 interface BackendPostAuthorDto {
@@ -128,30 +129,39 @@ export const getPostById = async (id: number): Promise<PostResponseDto> => {
   return normalizePost(response.data.data);
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export const createPost = async (data: FormData): Promise<ApiResponse<any>> => {
+export const createPost = async (
+  data: FormData,
+): Promise<ApiResponse<PostResponseDto>> => {
   const contentValue = data.get("Content");
   const content = typeof contentValue === "string" ? contentValue : "";
   const imageValue = data.get("Image");
 
   const response =
     imageValue instanceof File
-      ? await axiosClient.post<ApiResponse<any>>("/posts/with-image", data, {
-          headers: {
-            "Content-Type": "multipart/form-data",
+      ? await axiosClient.post<ApiResponse<BackendPostResponseDto>>(
+          "/posts/with-image",
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
           },
-        })
-      : await axiosClient.post<ApiResponse<any>>("/posts", {
+        )
+      : await axiosClient.post<ApiResponse<BackendPostResponseDto>>("/posts", {
           content,
         });
 
-  return response.data;
+  return {
+    ...response.data,
+    data: normalizePost(response.data.data),
+  };
 };
 
-export const deletePost = async (postId: number): Promise<ApiResponse<any>> => {
-  const response = await axiosClient.delete<ApiResponse<any>>(
+export const deletePost = async (
+  postId: number,
+): Promise<ApiResponse<SuccessMessageData>> => {
+  const response = await axiosClient.delete<ApiResponse<SuccessMessageData>>(
     `/posts/${postId}`,
   );
   return response.data;
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */

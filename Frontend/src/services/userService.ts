@@ -25,16 +25,14 @@ export const searchUsers = async (
   return response.data.data ?? [];
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export const updateProfile = async (
   userId: string,
   payload: UpdateProfileDto,
-): Promise<ApiResponse<any>> => {
-  const response = await axiosClient.put<ApiResponse<any>>(
+): Promise<ApiResponse<UserProfileResponseDto>> => {
+  const response = await axiosClient.put<ApiResponse<UserProfileResponseDto>>(
     `/users/${userId}`,
     payload,
   );
 
   return response.data;
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */

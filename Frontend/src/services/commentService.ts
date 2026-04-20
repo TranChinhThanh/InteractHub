@@ -3,6 +3,7 @@ import type {
   ApiResponse,
   CommentResponseDto,
   CreateCommentDto,
+  SuccessMessageData,
 } from "../types";
 
 export const getCommentsByPostId = async (
@@ -15,12 +16,11 @@ export const getCommentsByPostId = async (
   return Array.isArray(response.data.data) ? response.data.data : [];
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export const createComment = async (
   postId: number,
   payload: CreateCommentDto,
-): Promise<ApiResponse<any>> => {
-  const response = await axiosClient.post<ApiResponse<any>>(
+): Promise<ApiResponse<CommentResponseDto>> => {
+  const response = await axiosClient.post<ApiResponse<CommentResponseDto>>(
     `/comments/post/${postId}`,
     payload,
   );
@@ -30,11 +30,10 @@ export const createComment = async (
 
 export const deleteComment = async (
   commentId: number,
-): Promise<ApiResponse<any>> => {
-  const response = await axiosClient.delete<ApiResponse<any>>(
+): Promise<ApiResponse<SuccessMessageData>> => {
+  const response = await axiosClient.delete<ApiResponse<SuccessMessageData>>(
     `/comments/${commentId}`,
   );
 
   return response.data;
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */

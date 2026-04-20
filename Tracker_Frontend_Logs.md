@@ -2,6 +2,33 @@
 
 [⬅ Quay lại Master Plan](./Master_Plan_Tracker.md)
 
+## 20/04/2026 - F2 State/API Audit + Hoàn tất Service Typing & True Optimistic Like UI
+
+- Rà soát trước khi code theo yêu cầu F2:
+  - Task `eliminate any types in src/services`: chưa hoàn thành (còn nhiều `ApiResponse<any>` và `eslint-disable @typescript-eslint/no-explicit-any` trong `authService`, `postService`, `commentService`, `notificationService`, `reportService`, `userService`, `storyService`).
+  - Task `true optimistic UI for like`: chưa đạt chuẩn pattern React Query (đang update cache ở `onSuccess`, chưa có snapshot/rollback context chuẩn `onMutate` + `onError`).
+- Hoàn tất Task 1 (service typing):
+  - Cập nhật `src/types/index.ts` thêm các DTO dùng chung cho response không payload đầy đủ:
+    - `SuccessMessageData`
+    - `DeleteAllNotificationsResponseData`
+    - `ReportResponseDto`
+  - Refactor các service để bỏ hoàn toàn `ApiResponse<any>` và bỏ các comment eslint-disable cho `no-explicit-any`:
+    - `src/services/authService.ts`: `register` -> `ApiResponse<SuccessMessageData>`.
+    - `src/services/postService.ts`: `createPost` -> `ApiResponse<PostResponseDto>` (normalize từ backend DTO), `deletePost` -> `ApiResponse<SuccessMessageData>`.
+    - `src/services/commentService.ts`: `createComment` -> `ApiResponse<CommentResponseDto>`, `deleteComment` -> `ApiResponse<SuccessMessageData>`.
+    - `src/services/notificationService.ts`: `markAsRead/deleteNotification` -> `ApiResponse<SuccessMessageData>`, `deleteAllNotifications` -> `ApiResponse<DeleteAllNotificationsResponseData>`.
+    - `src/services/reportService.ts`: `reportPost` -> `ApiResponse<ReportResponseDto>`.
+    - `src/services/userService.ts`: `updateProfile` -> `ApiResponse<UserProfileResponseDto>`.
+    - `src/services/storyService.ts`: `deleteStory` -> `ApiResponse<SuccessMessageData>`.
+- Hoàn tất Task 2 (optimistic like chuẩn React Query):
+  - Cập nhật `src/components/PostCard.tsx` mutation like theo pattern chuẩn:
+    - `onMutate`: `cancelQueries(['posts'])`, snapshot `previousPosts` từ `getQueryData(['posts'])`, optimistic update `isLikedByCurrentUser` + `likeCount`.
+    - `onError`: rollback về `context.previousPosts` và hiển thị alert lỗi.
+    - `onSettled`: `invalidateQueries(['posts'])` để sync server truth.
+- Kết quả kiểm tra:
+  - Quét lại `src/services`: không còn `ApiResponse<any>` và không còn eslint-disable cho `no-explicit-any`.
+  - `npm run build`: pass (không lỗi TypeScript).
+
 ## 20/04/2026 - F3 Forms & Validation Audit + Hoàn tất FileInput/Loading State
 
 - Rà soát 3 task F3 theo yêu cầu và đối chiếu code hiện tại:

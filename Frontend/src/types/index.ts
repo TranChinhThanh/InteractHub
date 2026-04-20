@@ -4,6 +4,14 @@ export interface ApiResponse<T> {
   errors: string[];
 }
 
+export interface SuccessMessageData {
+  message?: string;
+}
+
+export interface DeleteAllNotificationsResponseData extends SuccessMessageData {
+  deletedCount?: number;
+}
+
 export interface LoginResponseData {
   token: string;
   userId: string;
@@ -87,6 +95,14 @@ export interface FriendResponseDto {
 
 export interface CreateReportDto {
   reason: string;
+}
+
+export interface ReportResponseDto {
+  id: number;
+  postId: number;
+  reporterId: string;
+  reason: string;
+  createdAt: string;
 }
 
 export interface StoryResponseDto {

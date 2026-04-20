@@ -3,6 +3,7 @@ import type {
   ApiResponse,
   LoginResponseData,
   RegisterRequestDto,
+  SuccessMessageData,
 } from "../types";
 
 export interface LoginRequestDto {
@@ -21,15 +22,13 @@ export const login = async (
   return response.data;
 };
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export const register = async (
   payload: RegisterRequestDto,
-): Promise<ApiResponse<any>> => {
-  const response = await axiosClient.post<ApiResponse<any>>(
+): Promise<ApiResponse<SuccessMessageData>> => {
+  const response = await axiosClient.post<ApiResponse<SuccessMessageData>>(
     "/auth/register",
     payload,
   );
 
   return response.data;
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */
