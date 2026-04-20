@@ -19,6 +19,9 @@ public class CommentsController : ControllerBase
         _commentsService = commentsService;
     }
 
+    /// <summary>
+    /// Creates a new comment for the specified post.
+    /// </summary>
     [HttpPost("post/{postId:int}")]
     public async Task<IActionResult> Create(int postId, [FromBody] CreateCommentDto dto)
     {
@@ -51,6 +54,9 @@ public class CommentsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets all comments for the specified post.
+    /// </summary>
     [HttpGet("post/{postId:int}")]
     [AllowAnonymous]
     public async Task<IActionResult> GetByPostId(int postId)
@@ -78,6 +84,9 @@ public class CommentsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes a comment by identifier when authorized.
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -90,7 +99,10 @@ public class CommentsController : ControllerBase
             }
 
             await _commentsService.DeleteCommentAsync(id, userId);
-            return Ok(ApiResponse.Success(new { message = "Comment deleted successfully." }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = "Comment deleted successfully.",
+            }));
         }
         catch (UnauthorizedAccessException ex)
         {

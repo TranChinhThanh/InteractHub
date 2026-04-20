@@ -42,7 +42,10 @@ namespace InteractHub.Api.Controllers
                 return BadRequest(ApiResponse.Failure(result.Message));
             }
 
-            return Ok(ApiResponse.Success(new { message = result.Message }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = result.Message,
+            }));
         }
 
         /// <summary>
@@ -69,35 +72,47 @@ namespace InteractHub.Api.Controllers
             return Ok(ApiResponse.Success(response));
         }
 
+        /// <summary>
+        /// Validates the current JWT token and returns principal information for debugging.
+        /// </summary>
         [Authorize]
         [HttpGet("/api/test/protected")]
         public IActionResult Protected()
         {
-            return Ok(ApiResponse.Success(new
+            return Ok(ApiResponse.Success(new ProtectedAccessResponseDto
             {
-                message = "Authorized access success.",
-                username = User.Identity?.Name,
-                userId = User.FindFirstValue(ClaimTypes.NameIdentifier),
-                roles = User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray(),
+                Message = "Authorized access success.",
+                Username = User.Identity?.Name,
+                UserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Roles = User.FindAll(ClaimTypes.Role).Select(claim => claim.Value).ToArray(),
             }));
         }
 
+        /// <summary>
+        /// Validates that the current user has the User role.
+        /// </summary>
         [Authorize(Roles = AppRoles.User)]
         [HttpGet("/api/test/user-role")]
         public IActionResult UserRoleOnly()
         {
-            return Ok(ApiResponse.Success(new { message = "User role access success." }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = "User role access success.",
+            }));
         }
 
+        /// <summary>
+        /// Validates the SelfOrAdmin policy for the provided user identifier.
+        /// </summary>
         [Authorize(Policy = AppPolicies.SelfOrAdmin)]
         [HttpGet("/api/test/self/{userId}")]
         public IActionResult SelfOrAdmin(string userId)
         {
-            return Ok(ApiResponse.Success(new
+            return Ok(ApiResponse.Success(new SelfOrAdminAccessResponseDto
             {
-                message = "Self/Admin policy access success.",
-                requestedUserId = userId,
-                tokenUserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
+                Message = "Self/Admin policy access success.",
+                RequestedUserId = userId,
+                TokenUserId = User.FindFirstValue(ClaimTypes.NameIdentifier),
             }));
         }
     }

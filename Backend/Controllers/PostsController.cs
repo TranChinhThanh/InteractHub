@@ -18,6 +18,9 @@ public class PostsController : ControllerBase
         _postService = postService;
     }
 
+    /// <summary>
+    /// Gets paginated posts for the feed.
+    /// </summary>
     [HttpGet]
     public async Task<ActionResult<PostListResponseDto>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
@@ -26,6 +29,9 @@ public class PostsController : ControllerBase
         return Ok(ApiResponse.Success(result));
     }
 
+    /// <summary>
+    /// Gets paginated posts created by a specific user.
+    /// </summary>
     [HttpGet("user/{userId}")]
     public async Task<ActionResult<PostListResponseDto>> GetByUserId(string userId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
@@ -41,6 +47,9 @@ public class PostsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets a post by identifier.
+    /// </summary>
     [HttpGet("{postId:int}")]
     public async Task<ActionResult<PostResponseDto>> GetById(int postId)
     {
@@ -54,6 +63,9 @@ public class PostsController : ControllerBase
         return Ok(ApiResponse.Success(result));
     }
 
+    /// <summary>
+    /// Creates a new text post for the current user.
+    /// </summary>
     [Authorize]
     [HttpPost]
     public async Task<ActionResult<PostResponseDto>> Create([FromBody] CreatePostDto request)
@@ -79,6 +91,9 @@ public class PostsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Creates a new post with image upload for the current user.
+    /// </summary>
     [Authorize]
     [HttpPost("with-image")]
     [Consumes("multipart/form-data")]
@@ -105,6 +120,9 @@ public class PostsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Updates a post owned by the current user or accessible by policy.
+    /// </summary>
     [Authorize]
     [HttpPut("{postId:int}")]
     public async Task<ActionResult<PostResponseDto>> Update(int postId, [FromBody] UpdatePostDto request)
@@ -131,6 +149,9 @@ public class PostsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes a post by identifier when authorized.
+    /// </summary>
     [Authorize]
     [HttpDelete("{postId:int}")]
     public async Task<IActionResult> Delete(int postId)
@@ -147,6 +168,9 @@ public class PostsController : ControllerBase
             return NotFound(ApiResponse.Failure("Post not found or you do not have permission."));
         }
 
-        return Ok(ApiResponse.Success(new { message = "Post deleted successfully." }));
+        return Ok(ApiResponse.Success(new SuccessResponseDto
+        {
+            Message = "Post deleted successfully.",
+        }));
     }
 }

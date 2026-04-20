@@ -18,6 +18,9 @@ public class NotificationsController : ControllerBase
         _notificationsService = notificationsService;
     }
 
+    /// <summary>
+    /// Gets notifications for the currently authenticated user.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetMyNotifications()
     {
@@ -50,6 +53,9 @@ public class NotificationsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Marks a notification as read for the current user.
+    /// </summary>
     [HttpPut("{id:int}/read")]
     public async Task<IActionResult> MarkAsRead(int id)
     {
@@ -62,7 +68,10 @@ public class NotificationsController : ControllerBase
             }
 
             await _notificationsService.MarkAsReadAsync(id, userId);
-            return Ok(ApiResponse.Success(new { message = "Notification marked as read successfully." }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = "Notification marked as read successfully.",
+            }));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -82,6 +91,9 @@ public class NotificationsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes a notification for the current user.
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -94,7 +106,10 @@ public class NotificationsController : ControllerBase
             }
 
             await _notificationsService.DeleteAsync(id, userId);
-            return Ok(ApiResponse.Success(new { message = "Notification deleted successfully." }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = "Notification deleted successfully.",
+            }));
         }
         catch (UnauthorizedAccessException ex)
         {
@@ -114,6 +129,9 @@ public class NotificationsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes all notifications for the current user.
+    /// </summary>
     [HttpDelete]
     public async Task<IActionResult> DeleteAll()
     {
@@ -126,7 +144,11 @@ public class NotificationsController : ControllerBase
             }
 
             var deletedCount = await _notificationsService.DeleteAllAsync(userId);
-            return Ok(ApiResponse.Success(new { message = "All notifications deleted successfully.", deletedCount }));
+            return Ok(ApiResponse.Success(new DeleteCountSuccessResponseDto
+            {
+                Message = "All notifications deleted successfully.",
+                DeletedCount = deletedCount,
+            }));
         }
         catch (UnauthorizedAccessException ex)
         {

@@ -19,6 +19,9 @@ public class UsersController : ControllerBase
         _usersService = usersService;
     }
 
+    /// <summary>
+    /// Searches users by query string.
+    /// </summary>
     [HttpGet("search")]
     public async Task<IActionResult> Search([FromQuery] string q)
     {
@@ -26,6 +29,9 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse.Success(users));
     }
 
+    /// <summary>
+    /// Gets a user profile by identifier.
+    /// </summary>
     [HttpGet("{userId}")]
     public async Task<IActionResult> GetById(string userId)
     {
@@ -38,6 +44,9 @@ public class UsersController : ControllerBase
         return Ok(ApiResponse.Success(profile));
     }
 
+    /// <summary>
+    /// Updates profile information for a user.
+    /// </summary>
     [HttpPut("{userId}")]
     [Authorize(Policy = AppPolicies.SelfOrAdmin)]
     public async Task<IActionResult> UpdateProfile(string userId, [FromBody] UpdateProfileDto dto)

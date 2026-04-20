@@ -19,6 +19,9 @@ public class FriendsController : ControllerBase
         _friendsService = friendsService;
     }
 
+    /// <summary>
+    /// Sends a follow request from the current user to the target user.
+    /// </summary>
     [HttpPost("{followeeId}")]
     public async Task<IActionResult> SendFriendRequest(string followeeId)
     {
@@ -31,7 +34,10 @@ public class FriendsController : ControllerBase
         try
         {
             await _friendsService.SendFriendRequestAsync(followerId, followeeId);
-            return Ok(ApiResponse.Success(new { message = "Friend request sent successfully." }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = "Friend request sent successfully.",
+            }));
         }
         catch (ArgumentException ex)
         {
@@ -47,6 +53,9 @@ public class FriendsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Unfollows the target user for the current authenticated user.
+    /// </summary>
     [HttpDelete("{followeeId}")]
     public async Task<IActionResult> Unfollow(string followeeId)
     {
@@ -59,7 +68,10 @@ public class FriendsController : ControllerBase
         try
         {
             await _friendsService.UnfollowAsync(followerId, followeeId);
-            return Ok(ApiResponse.Success(new { message = "Unfollowed successfully." }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = "Unfollowed successfully.",
+            }));
         }
         catch (ArgumentException ex)
         {
@@ -75,6 +87,9 @@ public class FriendsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets followers of the specified user.
+    /// </summary>
     [HttpGet("{userId}/followers")]
     public async Task<ActionResult<IEnumerable<FriendResponseDto>>> GetFollowers(string userId)
     {
@@ -97,6 +112,9 @@ public class FriendsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets users followed by the specified user.
+    /// </summary>
     [HttpGet("{userId}/following")]
     public async Task<ActionResult<IEnumerable<FriendResponseDto>>> GetFollowing(string userId)
     {

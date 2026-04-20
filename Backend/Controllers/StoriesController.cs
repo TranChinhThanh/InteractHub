@@ -19,6 +19,9 @@ public class StoriesController : ControllerBase
         _storiesService = storiesService;
     }
 
+    /// <summary>
+    /// Creates a story for the current user.
+    /// </summary>
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateStoryDto dto)
     {
@@ -51,6 +54,9 @@ public class StoriesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets active stories that have not expired.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> GetActiveStories()
     {
@@ -77,6 +83,9 @@ public class StoriesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes a story by identifier when authorized.
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -89,7 +98,10 @@ public class StoriesController : ControllerBase
             }
 
             await _storiesService.DeleteStoryAsync(id, userId);
-            return Ok(ApiResponse.Success(new { message = "Story deleted successfully." }));
+            return Ok(ApiResponse.Success(new SuccessResponseDto
+            {
+                Message = "Story deleted successfully.",
+            }));
         }
         catch (UnauthorizedAccessException)
         {

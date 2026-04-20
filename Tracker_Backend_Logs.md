@@ -4,6 +4,39 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (20/04/2026) - B2 REST Controllers DTO Consistency + Full XML Swagger Docs
+
+### Rà soát trước khi code (để tránh làm lại phần đã xong)
+
+- [x] Kiểm tra `Backend/InteractHub.Api.csproj`: đã có sẵn `GenerateDocumentationFile=true` và `NoWarn += 1591` từ lần trước.
+- [x] Kiểm tra `Backend/Program.cs`: đã có `IncludeXmlComments(...)` nhưng biến chưa đúng exact snippet yêu cầu `xmlFile/xmlPath`.
+- [x] Kiểm tra toàn bộ controllers: còn nhiều `ApiResponse.Success(new { ... })` (anonymous object) và chưa có `/// <summary>` đầy đủ cho tất cả endpoint HTTP.
+
+### Việc đã thực thi
+
+- [x] Tạo file DTO dùng chung `Backend/DTOs/Common/SuccessResponseDtos.cs` gồm:
+  - `SuccessResponseDto` (message chuẩn),
+  - `DeleteCountSuccessResponseDto`,
+  - `ProtectedAccessResponseDto`,
+  - `SelfOrAdminAccessResponseDto`.
+- [x] Refactor toàn bộ anonymous payload trong `ApiResponse.Success(new { ... })` sang DTO cụ thể ở các controllers:
+  - `AuthController`, `CommentsController`, `FriendsController`, `NotificationsController`, `PostsController`, `StoriesController`.
+- [x] Cập nhật Swagger XML config trong `Backend/Program.cs` theo đúng exact snippet yêu cầu:
+  - `var xmlFile = ...`
+  - `var xmlPath = Path.Combine(...)`
+  - `options.IncludeXmlComments(xmlPath)`
+- [x] Bổ sung `/// <summary>` cho toàn bộ endpoint `[Http...]` trong tất cả controllers dưới `Backend/Controllers`:
+  - `Auth`, `Comments`, `Friends`, `Hashtags`, `Likes`, `Notifications`, `Posts`, `Reports`, `Stories`, `Users`.
+
+### Kết quả xác minh
+
+- [x] Quét lại controllers: không còn `ApiResponse.Success(new { ... })` / `ApiResponse.Failure(new { ... })`.
+- [x] Số lượng `/// <summary>` khớp với số endpoint HTTP (đã phủ toàn bộ endpoint hiện có).
+- [x] Build backend thành công, không warnings/errors:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false` -> **Build succeeded**.
+
+---
+
 ## Cập nhật thực hiện mới nhất (20/04/2026) - B2 Polish Validation + Swagger XML Docs
 
 ### Việc đã thực thi

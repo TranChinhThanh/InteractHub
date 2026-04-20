@@ -18,6 +18,9 @@ public class LikesController : ControllerBase
         _likesService = likesService;
     }
 
+    /// <summary>
+    /// Toggles like status for a post by the current user.
+    /// </summary>
     [HttpPost("post/{postId:int}")]
     public async Task<IActionResult> TogglePostLike(int postId)
     {
@@ -46,6 +49,9 @@ public class LikesController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Toggles like status for a comment by the current user.
+    /// </summary>
     [HttpPost("comment/{commentId:int}")]
     public async Task<IActionResult> ToggleCommentLike(int commentId)
     {

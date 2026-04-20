@@ -15,6 +15,9 @@ public class HashtagsController : ControllerBase
         _hashtagsService = hashtagsService;
     }
 
+    /// <summary>
+    /// Gets trending hashtags ordered by usage frequency.
+    /// </summary>
     [HttpGet("trending")]
     public async Task<IActionResult> GetTrending([FromQuery] int limit = 5)
     {

@@ -19,6 +19,9 @@ public class ReportsController : ControllerBase
         _reportsService = reportsService;
     }
 
+    /// <summary>
+    /// Creates a report for the specified post.
+    /// </summary>
     [HttpPost("post/{postId:int}")]
     public async Task<IActionResult> CreatePostReport(int postId, [FromBody] CreateReportDto dto)
     {
