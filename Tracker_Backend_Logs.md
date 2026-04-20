@@ -4,6 +4,38 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (20/04/2026) - B1 Seed Realistic Social Data for Testing
+
+### Rà soát trước khi code (để tránh làm lại phần đã xong)
+
+- [x] Kiểm tra `Backend/Data/DbSeeder.cs`: đã có seed role `Admin/User` và tài khoản `admin`, nhưng chưa có user thường và dữ liệu social mẫu (posts/comments/likes/hashtags).
+- [x] Kiểm tra `Backend/Data/ApplicationDbContext.cs` + models: đã có đầy đủ entity/relationship cần thiết để seed `Hashtag` - `Post` (many-to-many), `Comment`, `Like`.
+
+### Việc đã thực thi
+
+- [x] Cập nhật `Backend/Data/DbSeeder.cs` trong `SeedDataAsync(IServiceProvider serviceProvider)`:
+  - Resolve `ApplicationDbContext` bằng `var context = serviceProvider.GetRequiredService<ApplicationDbContext>();` ngay sau phần seed admin.
+  - Seed 2 user thường idempotent bằng `UserManager`:
+    - `alice` (`alice@interacthub.com`) / password `User@123`
+    - `bob` (`bob@interacthub.com`) / password `User@123`
+  - Gán role `AppRoles.User` cho cả 2 tài khoản trên theo cơ chế chỉ add role khi chưa thuộc role.
+  - Lấy `aliceUser.Id`, `bobUser.Id` làm FK để seed dữ liệu social.
+- [x] Seed dữ liệu social có guard chống duplicate:
+  - Chỉ chạy khi `!context.Posts.Any()`.
+  - Seed hashtag mẫu: `#welcome`, `#interacthub`, `#dotnet`.
+  - Seed 3 posts gán cho Alice/Bob, attach hashtags.
+  - `await context.SaveChangesAsync()` sau khi tạo posts/hashtags.
+  - Seed tiếp 2 comments (Bob bình luận bài của Alice) + 2 likes (Alice/Admin like bài của Bob).
+  - `await context.SaveChangesAsync()` lần 2 sau comments/likes.
+
+### Kết quả xác minh
+
+- [x] Build backend thành công sau thay đổi:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false` -> **Build succeeded**.
+- [x] Seeder hiện đáp ứng đúng mục tiêu B1: dữ liệu test ban đầu đủ thực tế để UI không rỗng khi startup, đồng thời idempotent để không seed trùng qua nhiều lần chạy.
+
+---
+
 ## Cập nhật thực hiện mới nhất (20/04/2026) - B2 REST Controllers DTO Consistency + Full XML Swagger Docs
 
 ### Rà soát trước khi code (để tránh làm lại phần đã xong)
