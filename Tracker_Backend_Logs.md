@@ -4,6 +4,48 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (22/04/2026) - Phase 7 Docs Polish: API Endpoints List + SQL Script File
+
+### Việc đã thực thi
+
+- [x] Cập nhật bổ sung root `README.md`:
+  - Thêm section `API Endpoints List` ở cuối file.
+  - Group theo module: `Auth`, `Posts`, `Users`, `Friends`, `Stories`, `Notifications`, `Comments`, `Likes`, `Reports`, `Hashtags`.
+  - Mỗi module hiển thị rõ `HTTP Method` + `Route` theo đúng controllers hiện tại.
+- [x] Chạy EF Core CLI để tạo SQL script nộp bài trực tiếp:
+  - Lệnh thực thi trong thư mục `Backend`:
+    - `dotnet ef migrations script -o database_script.sql`
+  - File kết quả đã tạo: `Backend/database_script.sql`.
+
+### Kết quả
+
+- [x] README đã đủ phần endpoint index để grader rà soát API nhanh theo module.
+- [x] Đã có file SQL script vật lý để nộp kèm submission package.
+
+---
+
+## Cập nhật thực hiện mới nhất (22/04/2026) - Phase 7 Submission Docs (Backend Schema + Root README)
+
+### Việc đã thực thi
+
+- [x] Tạo mới `Backend/Database_Schema.md`:
+  - Bổ sung Mermaid ER Diagram cho đủ 9 entities: `ApplicationUser`, `Post`, `Comment`, `Like`, `Connection`, `Story`, `Notification`, `Hashtag`, `PostReport`.
+  - Mô tả quan hệ chính theo cấu hình EF Core hiện tại (bao gồm quan hệ n-n `Post` - `Hashtag`).
+  - Bổ sung block hướng dẫn grader xuất SQL script bằng EF CLI:
+    - `dotnet ef migrations script -o database_script.sql`
+- [x] Ghi đè root `README.md` theo format submission:
+  - `Project Overview`
+  - `Tech Stack`
+  - `Setup and Installation` (Backend + Frontend)
+  - `Implemented Features Summary`
+
+### Kết quả
+
+- [x] Hồ sơ tài liệu backend cho Phase 7 đã có database schema diagram và hướng dẫn SQL script generation để phục vụ chấm bài.
+- [x] README tổng đã được chuẩn hóa để grader có thể setup và kiểm tra toàn hệ thống nhanh hơn.
+
+---
+
 ## Cập nhật thực hiện mới nhất (20/04/2026) - T1 Integration Test cho Comments Workflow
 
 ### Việc đã thực thi

@@ -2,6 +2,15 @@
 
 [⬅ Quay lại Master Plan](./Master_Plan_Tracker.md)
 
+## 22/04/2026 - Phase 7 Submission Docs: Component Hierarchy
+
+- Hoàn thành tài liệu kiến trúc component frontend tại `Frontend/Component_Hierarchy.md`.
+- Tài liệu mô tả cây runtime theo đúng code hiện tại:
+  - `main.tsx` -> `QueryClientProvider` -> `AuthProvider` -> `App`.
+  - `App` -> `BrowserRouter` -> `Routes` -> `ProtectedRoute` -> `MainLayout` -> các pages.
+  - Mapping các component quan trọng: `PostCard`, `CommentSection`, `CreatePostForm`, `FileInput`, `TextInput`, `StoriesBar`, `GlobalNotificationListener`.
+- Mục tiêu đạt được: đáp ứng artifact "Component hierarchy documentation (tree structure)" cho rubric F1/Phase 7 submission package.
+
 ## 20/04/2026 - F2 State/API Audit + Hoàn tất Service Typing & True Optimistic Like UI
 
 - Rà soát trước khi code theo yêu cầu F2:

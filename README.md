@@ -1,71 +1,251 @@
 # InteractHub
-InteractHub is a modern, full-stack social media web application built with React, TypeScript, and ASP.NET Core 8.0. It features real-time notifications, secure JWT authentication, and cloud deployment on Microsoft Azure. Developed for the C# and .NET Development course.
-# InteractHub - Social Media Web Application
 
-![InteractHub Logo](https://via.placeholder.com/150) ## 📖 Project Overview
-[cite_start]InteractHub is a fully functional social media platform built as a Full-Stack Development Assignment for the C# and .NET Development course[cite: 7, 28]. [cite_start]The application allows users to connect, share moments, and interact in real-time[cite: 40, 46]. [cite_start]It strictly follows a Single Page Application (SPA) architecture communicating with a RESTful API[cite: 65, 66].
+## Project Overview
 
-## ✨ Key Features
-* [cite_start]**Authentication:** Secure account creation and login using JWT (JSON Web Tokens) and ASP.NET Core Identity[cite: 41, 72].
-* [cite_start]**Post & Feed:** Users can post status updates containing text and images[cite: 42].
-* [cite_start]**Stories:** Share temporary content (Stories) with followers[cite: 43].
-* [cite_start]**Social Interactions:** Like, comment, and share posts[cite: 44].
-* [cite_start]**Connections:** Send and manage friend requests[cite: 45].
-* [cite_start]**Real-time Notifications:** Receive instant updates via SignalR[cite: 46, 76].
-* [cite_start]**Trends & Discovery:** Track trending hashtags[cite: 48].
-* [cite_start]**Moderation:** Admin capabilities to report and manage inappropriate content[cite: 49].
+InteractHub is a full-stack social media application built for the C# and .NET course assignment.
 
-## 🛠️ Technology Stack
-### [cite_start]Frontend [cite: 55]
-* [cite_start]**Framework:** React 18+ [cite: 56]
-* [cite_start]**Language:** TypeScript (Strict Mode) [cite: 57]
-* [cite_start]**Styling:** Tailwind CSS [cite: 58]
-* [cite_start]**Routing:** React Router v6+ [cite: 61]
-* [cite_start]**State Management:** React Context API / Redux Toolkit [cite: 60]
-* [cite_start]**HTTP Client:** Axios [cite: 62]
+The system is implemented as:
 
-### [cite_start]Backend [cite: 67]
-* [cite_start]**Framework:** ASP.NET Core 8.0+ Web API [cite: 68]
-* [cite_start]**Database:** SQL Server with Entity Framework Core 8.0+ [cite: 70, 71]
-* [cite_start]**Architecture:** RESTful API, Repository & Service Patterns [cite: 69]
-* [cite_start]**Real-time:** SignalR [cite: 76]
-* [cite_start]**Documentation:** Swagger / OpenAPI [cite: 74]
+- Frontend SPA (React + TypeScript + Vite)
+- Backend REST API (ASP.NET Core 8 + EF Core + SQL Server)
+- JWT-based authentication and authorization
+- Realtime notifications using SignalR
 
-### [cite_start]Cloud & DevOps [cite: 77]
-* [cite_start]**Platform:** Microsoft Azure (App Service, SQL Database) [cite: 78, 337, 338]
-* [cite_start]**Storage:** Azure Blob Storage for media files [cite: 80]
-* [cite_start]**CI/CD:** Azure DevOps / GitHub Actions [cite: 79]
+The project includes core social workflows: authentication, posts, comments, likes, follows, stories, notifications, user profile management, search, hashtag trending, and report moderation.
 
-## 🚀 Setup and Installation Instructions
+## Tech Stack
+
+### Frontend
+
+- React 19
+- TypeScript (strict)
+- Vite
+- Tailwind CSS
+- React Router
+- React Hook Form
+- TanStack Query
+- Axios
+- SignalR client
+
+### Backend
+
+- ASP.NET Core Web API (.NET 8)
+- Entity Framework Core (SQL Server)
+- ASP.NET Core Identity
+- JWT Bearer Authentication
+- SignalR
+- Swagger / OpenAPI
+
+### Testing
+
+- xUnit
+- Moq
+- Microsoft.AspNetCore.Mvc.Testing (integration tests)
+
+## Setup and Installation
 
 ### Prerequisites
-* [Node.js](https://nodejs.org/) (v18 or higher)
-* [.NET 8.0 SDK](https://dotnet.microsoft.com/download)
-* [cite_start][SQL Server](https://www.microsoft.com/en-us/sql-server/sql-server-downloads) & SSMS / Azure Data Studio [cite: 418, 420]
-* [cite_start][Visual Studio 2022](https://visualstudio.microsoft.com/) or VS Code [cite: 417]
 
-### 1. Database Setup
-1. Open the backend solution in Visual Studio 2022.
-2. Update the `DefaultConnection` string in `appsettings.json` to point to your local SQL Server instance.
-3. Open the Package Manager Console and run:
-   ```bash
-   Update-Database
-(This will create the database and seed the initial data)
-### 2. Backend (API) Setup
-1. Navigate to the backend project directory.
-2. Run the API project using Visual Studio (press F5) or via CLI by running the command: `dotnet run`
-3. The API documentation will be available at `https://localhost:<port>/swagger`
-### 3. Frontend Setup
-1. Navigate to the frontend client directory.
-2. Install dependencies by running the command: `npm install`
-3. Create a `.env` file in the root of your frontend folder and set the backend API URL. Example: `VITE_API_BASE_URL=https://localhost:<port>/api`
-4. Start the development server by running: `npm run dev`
+- .NET 8 SDK
+- Node.js 18+
+- SQL Server (LocalDB or SQL Server instance)
+- EF Core CLI (`dotnet-ef`)
 
-## 📚 API Documentation
-Detailed API documentation and endpoint specifications can be explored interactively via Swagger UI once the backend server is running locally at the `/swagger` endpoint.
+### Backend Setup
 
-## 👥 Team Members
+1. Go to backend folder:
 
+```bash
+cd Backend
+```
 
----
-*Note: This project strictly adheres to the academic integrity guidelines provided by the course instructors. All complex logic is properly commented, and third-party tools/libraries are cited appropriately.*
+2. Restore dependencies:
+
+```bash
+dotnet restore
+```
+
+3. Update connection string in `Backend/appsettings.json` if needed.
+
+4. Apply migrations to create/update database:
+
+```bash
+dotnet ef database update
+```
+
+5. Run API:
+
+```bash
+dotnet run
+```
+
+6. Open Swagger UI:
+
+- `http://localhost:5035/swagger` (or the URL shown in runtime logs)
+
+### Frontend Setup
+
+1. Open a new terminal and go to frontend folder:
+
+```bash
+cd Frontend
+```
+
+2. Install dependencies:
+
+```bash
+npm install
+```
+
+3. Start frontend dev server:
+
+```bash
+npm run dev
+```
+
+4. Important: frontend API base URL is currently configured in `Frontend/src/api/axiosClient.ts` as `http://localhost:5035/api`. If your backend uses another port, update this value.
+
+### Run Tests
+
+```bash
+dotnet test Backend/InteractHub.Tests
+```
+
+## Implemented Features Summary
+
+### Authentication and Authorization
+
+- User registration and login
+- JWT access token flow
+- Role-based and policy-based authorization
+- Protected frontend routes
+
+### Social Features
+
+- Create/read/delete posts
+- Image upload for posts
+- Hashtag tagging and trending hashtags
+- Post likes (toggle)
+- Post comments (create/list/delete)
+- Follow/unfollow users and follower/following lists
+- Stories (create/list/delete, 24-hour lifecycle)
+
+### Notifications and Realtime
+
+- Notification list
+- Mark as read
+- Delete single and delete all notifications
+- Realtime push via SignalR (`ReceiveNotification`)
+
+### User and Discovery
+
+- User profile view and update
+- User search
+- Post detail page
+
+### Moderation
+
+- Report post workflow
+
+### API and Architecture Quality
+
+- DTO-based request/response contracts
+- Standardized API response envelope
+- Controller -> Service -> Repository -> DbContext architecture
+- Swagger docs with XML comments
+
+### Testing Coverage
+
+- 15 unit tests across 3 services
+- 1 integration test for critical comments workflow
+- Total current tests: 16 passing
+
+## Submission Artifacts
+
+- Frontend component hierarchy document: `Frontend/Component_Hierarchy.md`
+- Database schema document with Mermaid ERD: `Backend/Database_Schema.md`
+
+## API Endpoints List
+
+### Auth
+
+| Method | Route                     |
+| ------ | ------------------------- |
+| POST   | `/api/auth/register`      |
+| POST   | `/api/auth/login`         |
+| GET    | `/api/test/protected`     |
+| GET    | `/api/test/user-role`     |
+| GET    | `/api/test/self/{userId}` |
+
+### Posts
+
+| Method | Route                      |
+| ------ | -------------------------- |
+| GET    | `/api/posts`               |
+| GET    | `/api/posts/user/{userId}` |
+| GET    | `/api/posts/{postId:int}`  |
+| POST   | `/api/posts`               |
+| POST   | `/api/posts/with-image`    |
+| PUT    | `/api/posts/{postId:int}`  |
+| DELETE | `/api/posts/{postId:int}`  |
+
+### Users
+
+| Method | Route                         |
+| ------ | ----------------------------- |
+| GET    | `/api/users/search?q={query}` |
+| GET    | `/api/users/{userId}`         |
+| PUT    | `/api/users/{userId}`         |
+
+### Friends
+
+| Method | Route                             |
+| ------ | --------------------------------- |
+| POST   | `/api/friends/{followeeId}`       |
+| DELETE | `/api/friends/{followeeId}`       |
+| GET    | `/api/friends/{userId}/followers` |
+| GET    | `/api/friends/{userId}/following` |
+
+### Stories
+
+| Method | Route                   |
+| ------ | ----------------------- |
+| POST   | `/api/stories`          |
+| GET    | `/api/stories`          |
+| DELETE | `/api/stories/{id:int}` |
+
+### Notifications
+
+| Method | Route                              |
+| ------ | ---------------------------------- |
+| GET    | `/api/notifications`               |
+| PUT    | `/api/notifications/{id:int}/read` |
+| DELETE | `/api/notifications/{id:int}`      |
+| DELETE | `/api/notifications`               |
+
+### Comments
+
+| Method | Route                             |
+| ------ | --------------------------------- |
+| POST   | `/api/comments/post/{postId:int}` |
+| GET    | `/api/comments/post/{postId:int}` |
+| DELETE | `/api/comments/{id:int}`          |
+
+### Likes
+
+| Method | Route                                |
+| ------ | ------------------------------------ |
+| POST   | `/api/likes/post/{postId:int}`       |
+| POST   | `/api/likes/comment/{commentId:int}` |
+
+### Reports
+
+| Method | Route                            |
+| ------ | -------------------------------- |
+| POST   | `/api/reports/post/{postId:int}` |
+
+### Hashtags
+
+| Method | Route                    |
+| ------ | ------------------------ |
+| GET    | `/api/hashtags/trending` |
