@@ -3,8 +3,11 @@ namespace InteractHub.Api.Controllers;
 using System.Security.Claims;
 using InteractHub.Api.DTOs.Common;
 using InteractHub.Api.DTOs.Posts;
+using InteractHub.Api.Models;
+using InteractHub.Api.Security;
 using InteractHub.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -12,10 +15,12 @@ using Microsoft.AspNetCore.Mvc;
 public class PostsController : ControllerBase
 {
     private readonly IPostService _postService;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public PostsController(IPostService postService)
+    public PostsController(IPostService postService, UserManager<ApplicationUser> userManager)
     {
         _postService = postService;
+        _userManager = userManager;
     }
 
     /// <summary>
@@ -162,7 +167,17 @@ public class PostsController : ControllerBase
             return Unauthorized(ApiResponse.Failure("Invalid token."));
         }
 
-        var deleted = await _postService.DeleteAsync(postId, userId);
+        var isAdmin = User.IsInRole(AppRoles.Admin);
+        if (!isAdmin)
+        {
+            var actor = await _userManager.FindByIdAsync(userId);
+            if (actor is not null)
+            {
+                isAdmin = await _userManager.IsInRoleAsync(actor, AppRoles.Admin);
+            }
+        }
+
+        var deleted = await _postService.DeleteAsync(postId, userId, isAdmin);
         if (!deleted)
         {
             return NotFound(ApiResponse.Failure("Post not found or you do not have permission."));

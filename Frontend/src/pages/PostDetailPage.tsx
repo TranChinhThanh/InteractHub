@@ -52,7 +52,11 @@ function PostDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <PostCard post={post} currentUserId={user?.id} />
+      <PostCard
+        post={post}
+        currentUserId={user?.id}
+        currentUserRole={user?.role}
+      />
     </div>
   );
 }

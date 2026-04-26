@@ -15,6 +15,7 @@ import { reportPost } from "../services/reportService";
 interface PostCardProps {
   post: PostResponseDto;
   currentUserId: string | undefined;
+  currentUserRole?: string;
 }
 
 const getErrorMessage = (error: unknown, fallbackMessage: string): string => {
@@ -67,12 +68,13 @@ interface LikeMutationContext {
   previousPosts?: InfiniteData<PostResponseDto[], number>;
 }
 
-function PostCard({ post, currentUserId }: PostCardProps) {
+function PostCard({ post, currentUserId, currentUserRole }: PostCardProps) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
   const initials = post.userName.trim().charAt(0).toUpperCase() || "U";
-  const canDelete = post.userId === currentUserId;
-  const canReport = currentUserId !== post.userId;
+  const isAdmin = currentUserRole === "Admin";
+  const canDelete = post.userId === currentUserId || isAdmin;
+  const canReport = !canDelete && currentUserId !== undefined;
 
   const deleteMutation = useMutation({
     mutationFn: (postId: number) => deletePost(postId),
@@ -188,16 +190,10 @@ function PostCard({ post, currentUserId }: PostCardProps) {
           type="button"
           onClick={handleDelete}
           disabled={deleteMutation.isPending}
-          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute right-4 top-4 inline-flex min-w-20 items-center justify-center rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Xoa bai viet"
         >
-          {deleteMutation.isPending ? (
-            <span className="text-[10px]">...</span>
-          ) : (
-            <span className="material-symbols-outlined text-[18px]">
-              more_horiz
-            </span>
-          )}
+          {deleteMutation.isPending ? "Đang xóa..." : "Xóa"}
         </button>
       ) : null}
 
@@ -206,20 +202,14 @@ function PostCard({ post, currentUserId }: PostCardProps) {
           type="button"
           onClick={handleReport}
           disabled={reportMutation.isPending}
-          className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute right-4 top-4 inline-flex min-w-20 items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
           aria-label="Bao cao bai viet"
         >
-          {reportMutation.isPending ? (
-            <span className="text-[10px]">...</span>
-          ) : (
-            <span className="material-symbols-outlined text-[18px]">
-              more_horiz
-            </span>
-          )}
+          {reportMutation.isPending ? "Đang gửi..." : "Báo cáo"}
         </button>
       ) : null}
 
-      <header className="mb-4 flex items-center gap-3 pr-10">
+      <header className="mb-4 flex items-center gap-3 pr-28">
         <Link to={`/profile/${post.userId}`} className="cursor-pointer">
           {post.userAvatarUrl ? (
             <img
@@ -319,7 +309,11 @@ function PostCard({ post, currentUserId }: PostCardProps) {
 
       {showComments ? (
         <div className="mt-4 border-t border-gray-100 pt-4">
-          <CommentSection postId={post.id} currentUserId={currentUserId} />
+          <CommentSection
+            postId={post.id}
+            currentUserId={currentUserId}
+            currentUserRole={currentUserRole}
+          />
         </div>
       ) : null}
     </article>

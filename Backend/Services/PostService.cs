@@ -170,11 +170,14 @@ public sealed class PostService : IPostService
         return ToPostResponse(post, post.User);
     }
 
-    public async Task<bool> DeleteAsync(int postId, string userId)
+    public async Task<bool> DeleteAsync(int postId, string userId, bool isAdmin = false)
     {
         var post = await _postRepository.GetByIdAsync(postId);
 
-        if (post is null || !string.Equals(post.UserId, userId, StringComparison.Ordinal))
+        var isOwner = post is not null
+            && string.Equals(post.UserId, userId, StringComparison.Ordinal);
+
+        if (post is null || (!isOwner && !isAdmin))
         {
             return false;
         }

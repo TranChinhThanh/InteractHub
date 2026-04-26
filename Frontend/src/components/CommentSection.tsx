@@ -11,6 +11,7 @@ import type { ApiResponse } from "../types";
 interface CommentSectionProps {
   postId: number;
   currentUserId: string | undefined;
+  currentUserRole?: string;
 }
 
 interface CommentFormValues {
@@ -49,7 +50,11 @@ const formatCreatedAt = (createdAt: string): string => {
   });
 };
 
-function CommentSection({ postId, currentUserId }: CommentSectionProps) {
+function CommentSection({
+  postId,
+  currentUserId,
+  currentUserRole,
+}: CommentSectionProps) {
   const queryClient = useQueryClient();
   const {
     register,
@@ -105,7 +110,8 @@ function CommentSection({ postId, currentUserId }: CommentSectionProps) {
       ) : comments && comments.length > 0 ? (
         <div className="space-y-2">
           {comments.map((comment) => {
-            const canDelete = comment.userId === currentUserId;
+            const canDelete =
+              comment.userId === currentUserId || currentUserRole === "Admin";
             const isDeleting =
               deleteMutation.isPending &&
               deleteMutation.variables === comment.id;

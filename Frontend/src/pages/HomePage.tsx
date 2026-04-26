@@ -83,7 +83,12 @@ function HomePage() {
 
       <div className="space-y-5">
         {posts.map((post) => (
-          <PostCard key={post.id} post={post} currentUserId={user?.id} />
+          <PostCard
+            key={post.id}
+            post={post}
+            currentUserId={user?.id}
+            currentUserRole={user?.role}
+          />
         ))}
 
         {hasNextPage ? (

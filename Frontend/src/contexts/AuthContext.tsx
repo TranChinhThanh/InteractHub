@@ -14,11 +14,57 @@ import type { ApiResponse, LoginResponseData } from "../types";
 const TOKEN_STORAGE_KEY = "auth_token";
 const USER_ID_STORAGE_KEY = "auth_user_id";
 const USERNAME_STORAGE_KEY = "auth_username";
+const USER_ROLE_STORAGE_KEY = "auth_user_role";
+const ROLE_CLAIM_TYPE =
+  "http://schemas.microsoft.com/ws/2008/06/identity/claims/role";
+
+const getRoleFromToken = (token: string): string | undefined => {
+  try {
+    const tokenSegments = token.split(".");
+    if (tokenSegments.length < 2) {
+      return undefined;
+    }
+
+    const payloadBase64Url = tokenSegments[1];
+    const payloadBase64 = payloadBase64Url
+      .replace(/-/g, "+")
+      .replace(/_/g, "/");
+    const payloadBase64Padded = payloadBase64.padEnd(
+      Math.ceil(payloadBase64.length / 4) * 4,
+      "=",
+    );
+
+    const payloadText = atob(payloadBase64Padded);
+    const payload = JSON.parse(payloadText) as Record<string, unknown>;
+    const roleClaim = payload[ROLE_CLAIM_TYPE] ?? payload.role;
+
+    if (typeof roleClaim === "string") {
+      return roleClaim;
+    }
+
+    if (Array.isArray(roleClaim)) {
+      const roleValues = roleClaim.filter(
+        (value): value is string => typeof value === "string",
+      );
+
+      if (roleValues.includes("Admin")) {
+        return "Admin";
+      }
+
+      return roleValues[0];
+    }
+
+    return undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 const clearLegacyLocalStorageAuth = () => {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
   localStorage.removeItem(USER_ID_STORAGE_KEY);
   localStorage.removeItem(USERNAME_STORAGE_KEY);
+  localStorage.removeItem(USER_ROLE_STORAGE_KEY);
 };
 
 export interface User {
@@ -49,6 +95,7 @@ const getInitialToken = (): string | null => {
 const getInitialUser = (): User | null => {
   const userId = sessionStorage.getItem(USER_ID_STORAGE_KEY);
   const username = sessionStorage.getItem(USERNAME_STORAGE_KEY);
+  const role = sessionStorage.getItem(USER_ROLE_STORAGE_KEY);
 
   if (!userId || !username) {
     return null;
@@ -57,6 +104,7 @@ const getInitialUser = (): User | null => {
   return {
     id: userId,
     username,
+    role: role ?? undefined,
   };
 };
 
@@ -76,14 +124,21 @@ function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const data = response.data as LoginResponseData;
+      const role = getRoleFromToken(data.token);
       const nextUser: User = {
         id: data.userId,
         username: data.username,
+        role,
       };
 
       sessionStorage.setItem(TOKEN_STORAGE_KEY, data.token);
       sessionStorage.setItem(USER_ID_STORAGE_KEY, data.userId);
       sessionStorage.setItem(USERNAME_STORAGE_KEY, data.username);
+      if (role) {
+        sessionStorage.setItem(USER_ROLE_STORAGE_KEY, role);
+      } else {
+        sessionStorage.removeItem(USER_ROLE_STORAGE_KEY);
+      }
       clearLegacyLocalStorageAuth();
 
       setToken(data.token);
@@ -114,6 +169,7 @@ function AuthProvider({ children }: AuthProviderProps) {
     sessionStorage.removeItem(TOKEN_STORAGE_KEY);
     sessionStorage.removeItem(USER_ID_STORAGE_KEY);
     sessionStorage.removeItem(USERNAME_STORAGE_KEY);
+    sessionStorage.removeItem(USER_ROLE_STORAGE_KEY);
     clearLegacyLocalStorageAuth();
     setUser(null);
     setToken(null);

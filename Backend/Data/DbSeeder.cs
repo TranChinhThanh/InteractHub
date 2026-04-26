@@ -31,55 +31,45 @@ namespace InteractHub.Api.Data
 
             const string adminUserName = "admin";
             const string adminEmail = "admin@interacthub.com";
+            const string adminRealUserName = "adminReal";
+            const string adminRealEmail = "adminReal@interacthub.com";
             const string adminPassword = "Admin@123";
 
-            var adminUser = await userManager.FindByNameAsync(adminUserName);
-            if (adminUser is null)
-            {
-                adminUser = new ApplicationUser
-                {
-                    UserName = adminUserName,
-                    Email = adminEmail,
-                    FullName = "System Admin",
-                    EmailConfirmed = true,
-                };
+            _ = await EnsureUserWithRoleAsync(
+                userManager,
+                userName: adminUserName,
+                email: adminEmail,
+                fullName: "System Admin",
+                password: adminPassword,
+                roleName: AppRoles.Admin);
 
-                var createUserResult = await userManager.CreateAsync(adminUser, adminPassword);
-                if (!createUserResult.Succeeded)
-                {
-                    throw new InvalidOperationException(
-                        $"Failed to seed admin user '{adminUserName}': {JoinErrors(createUserResult)}");
-                }
-            }
-
-            var isAdmin = await userManager.IsInRoleAsync(adminUser, AppRoles.Admin);
-            if (!isAdmin)
-            {
-                var addToRoleResult = await userManager.AddToRoleAsync(adminUser, AppRoles.Admin);
-                if (!addToRoleResult.Succeeded)
-                {
-                    throw new InvalidOperationException(
-                        $"Failed to assign role '{AppRoles.Admin}' to user '{adminUserName}': {JoinErrors(addToRoleResult)}");
-                }
-            }
+            var adminRealUser = await EnsureUserWithRoleAsync(
+                userManager,
+                userName: adminRealUserName,
+                email: adminRealEmail,
+                fullName: "System Admin Real",
+                password: adminPassword,
+                roleName: AppRoles.Admin);
 
             var context = serviceProvider.GetRequiredService<ApplicationDbContext>();
 
             const string defaultUserPassword = "User@123";
 
-            var aliceUser = await EnsureRegularUserAsync(
+            var aliceUser = await EnsureUserWithRoleAsync(
                 userManager,
                 userName: "alice",
                 email: "alice@interacthub.com",
                 fullName: "Alice Nguyen",
-                password: defaultUserPassword);
+                password: defaultUserPassword,
+                roleName: AppRoles.User);
 
-            var bobUser = await EnsureRegularUserAsync(
+            var bobUser = await EnsureUserWithRoleAsync(
                 userManager,
                 userName: "bob",
                 email: "bob@interacthub.com",
                 fullName: "Bob Tran",
-                password: defaultUserPassword);
+                password: defaultUserPassword,
+                roleName: AppRoles.User);
 
             if (!context.Posts.Any())
             {
@@ -161,7 +151,7 @@ namespace InteractHub.Api.Data
                     new()
                     {
                         PostId = bobDotNetPost.Id,
-                        UserId = adminUser.Id,
+                        UserId = adminRealUser.Id,
                         CreatedAt = DateTime.UtcNow.AddMinutes(-4),
                     },
                 };
@@ -172,12 +162,13 @@ namespace InteractHub.Api.Data
             }
         }
 
-        private static async Task<ApplicationUser> EnsureRegularUserAsync(
+        private static async Task<ApplicationUser> EnsureUserWithRoleAsync(
             UserManager<ApplicationUser> userManager,
             string userName,
             string email,
             string fullName,
-            string password)
+            string password,
+            string roleName)
         {
             var user = await userManager.FindByNameAsync(userName);
             if (user is null)
@@ -194,18 +185,18 @@ namespace InteractHub.Api.Data
                 if (!createUserResult.Succeeded)
                 {
                     throw new InvalidOperationException(
-                        $"Failed to seed regular user '{userName}': {JoinErrors(createUserResult)}");
+                        $"Failed to seed user '{userName}': {JoinErrors(createUserResult)}");
                 }
             }
 
-            var isUserRole = await userManager.IsInRoleAsync(user, AppRoles.User);
-            if (!isUserRole)
+            var isInRole = await userManager.IsInRoleAsync(user, roleName);
+            if (!isInRole)
             {
-                var addToRoleResult = await userManager.AddToRoleAsync(user, AppRoles.User);
+                var addToRoleResult = await userManager.AddToRoleAsync(user, roleName);
                 if (!addToRoleResult.Succeeded)
                 {
                     throw new InvalidOperationException(
-                        $"Failed to assign role '{AppRoles.User}' to user '{userName}': {JoinErrors(addToRoleResult)}");
+                        $"Failed to assign role '{roleName}' to user '{userName}': {JoinErrors(addToRoleResult)}");
                 }
             }
 

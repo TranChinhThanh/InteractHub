@@ -539,7 +539,12 @@ function ProfilePage() {
         {!isUserPostsLoading && !isUserPostsError && userPosts.length > 0 ? (
           <div className="mt-4 space-y-4">
             {userPosts.map((post) => (
-              <PostCard key={post.id} post={post} currentUserId={user?.id} />
+              <PostCard
+                key={post.id}
+                post={post}
+                currentUserId={user?.id}
+                currentUserRole={user?.role}
+              />
             ))}
 
             {hasNextUserPostsPage ? (

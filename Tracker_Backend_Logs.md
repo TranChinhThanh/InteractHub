@@ -4,6 +4,81 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (26/04/2026) - Fix fallback quyền Admin khi xóa Post (token thiếu role claim)
+
+### Nguyên nhân xác định
+
+- [x] Triệu chứng user report: admin xóa comment được nhưng không xóa được post người khác.
+- [x] Đã verify runtime: token `adminReal` có role `Admin`; endpoint `/api/posts/{id}` cho phép admin xóa post người khác khi `postId` tồn tại.
+- [x] Rủi ro còn lại: luồng xóa post trước đó phụ thuộc `User.IsInRole(AppRoles.Admin)` từ JWT claim; nếu token cũ/không chứa role claim thì admin có thể bị coi như user thường cho riêng endpoint xóa post.
+
+### Việc đã thực thi
+
+- [x] Cập nhật `Backend/Controllers/PostsController.cs`:
+  - Inject thêm `UserManager<ApplicationUser>` vào controller.
+  - Trong action `DELETE /api/posts/{postId:int}`:
+    - Giữ check nhanh `User.IsInRole(AppRoles.Admin)` từ claim.
+    - Nếu check claim trả `false`, fallback tra DB qua `UserManager.FindByIdAsync(userId)` + `IsInRoleAsync(actor, AppRoles.Admin)`.
+    - Truyền kết quả cuối cùng vào `_postService.DeleteAsync(postId, userId, isAdmin)`.
+- [x] Build xác minh backend:
+  - Build mặc định bị lock bởi process API đang chạy (`MSB3021/MSB3027`).
+  - Build xác minh bằng output tạm: `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutputPath=bin/tmpverify11/` -> **Build succeeded**.
+
+### Kết quả
+
+- [x] API xóa post của admin ổn định hơn với cả token đầy đủ role claim và token thiếu role claim (fallback DB role).
+- [x] Hành vi moderation của admin cho post/comment đã đồng nhất theo nguồn role đáng tin cậy (Identity DB).
+
+---
+
+## Cập nhật thực hiện mới nhất (26/04/2026) - Fix quyền Admin moderation hiển thị như User thường
+
+### Nguyên nhân xác định
+
+- [x] Backend có check Admin cho xóa `Comment`/`Story`, nhưng frontend chưa dùng role để hiển thị nút xóa cho admin.
+- [x] Backend `PostService.DeleteAsync` trước đó chỉ cho phép owner xóa post, chưa cho Admin xóa post của user khác.
+
+### Việc đã thực thi
+
+- [x] Cập nhật backend cho xóa post bởi Admin:
+  - `Backend/Services/Interfaces/IPostService.cs`: đổi signature `DeleteAsync(int postId, string userId, bool isAdmin = false)`.
+  - `Backend/Services/PostService.cs`: cho phép delete khi `isOwner || isAdmin`.
+  - `Backend/Controllers/PostsController.cs`: truyền cờ `isAdmin = User.IsInRole(AppRoles.Admin)` vào service.
+- [x] Build xác minh backend:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false` -> **Build succeeded**.
+
+### Kết quả
+
+- [x] API backend hiện cho phép tài khoản role `Admin` xóa post của user khác (đồng bộ với logic admin delete comment/story đã có).
+
+---
+
+## Cập nhật thực hiện mới nhất (26/04/2026) - B1 Seed thêm Admin account `adminReal`
+
+### Bối cảnh
+
+- [x] User yêu cầu bổ sung thêm tài khoản admin mới do tài khoản seed admin cũ bị trùng với account khác trong môi trường test.
+
+### Việc đã thực thi
+
+- [x] Cập nhật `Backend/Data/DbSeeder.cs`:
+  - Refactor helper seed user thành hàm dùng chung `EnsureUserWithRoleAsync(...)` để seed idempotent theo role (`Admin` hoặc `User`).
+  - Giữ nguyên seed admin cũ `admin@interacthub.com`.
+  - Bổ sung seed thêm admin mới theo yêu cầu:
+    - Username: `adminReal`
+    - Email: `adminReal@interacthub.com`
+    - Password: `Admin@123`
+    - Role: `Admin`
+  - Dữ liệu social mẫu vẫn giữ cơ chế chống duplicate theo `!context.Posts.Any()`.
+- [x] Build xác minh sau chỉnh sửa:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false` -> **Build succeeded**.
+
+### Kết quả
+
+- [x] Seeder ban đầu hiện có 2 tài khoản admin (`admin`, `adminReal`) và vẫn chạy idempotent.
+
+---
+
 ## Cập nhật thực hiện mới nhất (22/04/2026) - Phase 7 Docs Polish: API Endpoints List + SQL Script File
 
 ### Việc đã thực thi

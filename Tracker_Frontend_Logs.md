@@ -2,6 +2,28 @@
 
 [⬅ Quay lại Master Plan](./Master_Plan_Tracker.md)
 
+## 26/04/2026 - Admin Moderation UI Fix (Post/Comment)
+
+- Xác định nguyên nhân tài khoản `adminReal` không thấy nút xóa nội dung user khác:
+  - Frontend đang chỉ kiểm tra owner (`currentUserId`) để hiển thị nút xóa ở `PostCard` và `CommentSection`.
+  - Auth context chưa đọc/luu role từ JWT sau đăng nhập.
+- Cập nhật `src/contexts/AuthContext.tsx`:
+  - Thêm parse role từ JWT payload claim role.
+  - Lưu role vào `sessionStorage` (`auth_user_role`) và hydrate lại user khi refresh trang.
+- Cập nhật `src/components/PostCard.tsx`:
+  - Bổ sung prop `currentUserRole`.
+  - `canDelete` đổi thành `owner || role === Admin`.
+  - Truyền `currentUserRole` xuống `CommentSection`.
+- Cập nhật `src/components/CommentSection.tsx`:
+  - Bổ sung prop `currentUserRole`.
+  - `canDelete` đổi thành `owner || role === Admin`.
+- Cập nhật các trang gọi `PostCard` để truyền role hiện tại:
+  - `src/pages/HomePage.tsx`
+  - `src/pages/ProfilePage.tsx`
+  - `src/pages/PostDetailPage.tsx`
+- Kết quả xác minh frontend:
+  - `npm run build` -> **Build succeeded**.
+
 ## 22/04/2026 - Phase 7 Submission Docs: Component Hierarchy
 
 - Hoàn thành tài liệu kiến trúc component frontend tại `Frontend/Component_Hierarchy.md`.
