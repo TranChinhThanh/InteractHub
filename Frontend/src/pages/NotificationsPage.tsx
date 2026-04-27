@@ -140,6 +140,13 @@ const getTypeBadge = (
     };
   }
 
+  if (normalizedType === "report") {
+    return {
+      icon: "flag",
+      className: "bg-red-500",
+    };
+  }
+
   return {
     icon: "campaign",
     className: "bg-orange-500",
@@ -204,7 +211,9 @@ function NotificationsPage() {
   });
 
   const unreadNotificationIds =
-    notifications?.filter((notification) => !notification.isRead).map((notification) => notification.id) ?? [];
+    notifications
+      ?.filter((notification) => !notification.isRead)
+      .map((notification) => notification.id) ?? [];
   const hasNotifications = (notifications?.length ?? 0) > 0;
   const hasUnreadNotifications = unreadNotificationIds.length > 0;
   const isMarkingAllAsRead = markAllAsReadMutation.isPending;
@@ -239,11 +248,13 @@ function NotificationsPage() {
       return;
     }
 
+    const normalizedType = notification.type.toLowerCase();
+
     if (!notification.isRead) {
       markAsReadMutation.mutate(notification.id);
     }
 
-    if (notification.type === "Follow") {
+    if (normalizedType === "follow") {
       const targetUserId = user?.id ?? notification.userId;
 
       if (targetUserId) {
@@ -254,7 +265,9 @@ function NotificationsPage() {
     }
 
     if (
-      (notification.type === "Like" || notification.type === "Comment") &&
+      (normalizedType === "like" ||
+        normalizedType === "comment" ||
+        normalizedType === "report") &&
       notification.relatedEntityId
     ) {
       navigate(`/posts/${notification.relatedEntityId}`);
@@ -361,7 +374,9 @@ function NotificationsPage() {
               <div className="min-w-0 flex-1">
                 <p className="line-clamp-2 text-[15px] leading-6 text-gray-700">
                   {actor.length > 0 ? (
-                    <span className="font-semibold text-gray-900">{actor} </span>
+                    <span className="font-semibold text-gray-900">
+                      {actor}{" "}
+                    </span>
                   ) : null}
                   <span>{detail}</span>
                 </p>

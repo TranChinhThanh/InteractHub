@@ -1,10 +1,12 @@
-import { useQuery } from "@tanstack/react-query";
-import { useParams } from "react-router-dom";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useNavigate, useParams } from "react-router-dom";
 import PostCard from "../components/PostCard";
 import { useAuth } from "../contexts/AuthContext";
 import { getPostById } from "../services/postService";
 
 function PostDetailPage() {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { postId } = useParams();
 
@@ -50,12 +52,18 @@ function PostDetailPage() {
     );
   }
 
+  const handleDeleteSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ["posts"] });
+    navigate("/", { replace: true });
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <PostCard
         post={post}
         currentUserId={user?.id}
         currentUserRole={user?.role}
+        onDeleteSuccess={handleDeleteSuccess}
       />
     </div>
   );

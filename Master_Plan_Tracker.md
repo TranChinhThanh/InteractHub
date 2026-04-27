@@ -13,6 +13,10 @@
 - [📝 Nhật Ký Backend (API, DB, Auth, v.v.)](./Tracker_Backend_Logs.md)
 - [📝 Nhật Ký Frontend (React, UI/UX, Vite, v.v.)](./Tracker_Frontend_Logs.md)
 
+## Cập nhật thực hiện mới nhất (27/04/2026)
+
+- [x] Hoàn tất flow moderation theo report: khi user báo cáo post, hệ thống tạo thông báo cho toàn bộ role `Admin` (kèm `RelatedEntityId = postId`) và phát realtime SignalR; khi admin bấm thông báo `Report` ở trang Notifications sẽ điều hướng sang `/posts/{postId}` để kiểm duyệt và có thể xóa post.
+
 ## Đối chiếu Assignment.pdf (07/04/2026)
 
 - [x] Đã rà soát lại toàn bộ yêu cầu F1-F4, B1-B4, T1, D1 trực tiếp từ `assignment.pdf`.

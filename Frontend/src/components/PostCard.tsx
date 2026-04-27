@@ -16,6 +16,7 @@ interface PostCardProps {
   post: PostResponseDto;
   currentUserId: string | undefined;
   currentUserRole?: string;
+  onDeleteSuccess?: (postId: number) => void;
 }
 
 const getErrorMessage = (error: unknown, fallbackMessage: string): string => {
@@ -68,7 +69,14 @@ interface LikeMutationContext {
   previousPosts?: InfiniteData<PostResponseDto[], number>;
 }
 
-function PostCard({ post, currentUserId, currentUserRole }: PostCardProps) {
+const DEFAULT_REPORT_REASON = "User reported this post";
+
+function PostCard({
+  post,
+  currentUserId,
+  currentUserRole,
+  onDeleteSuccess,
+}: PostCardProps) {
   const queryClient = useQueryClient();
   const [showComments, setShowComments] = useState(false);
   const initials = post.userName.trim().charAt(0).toUpperCase() || "U";
@@ -96,6 +104,8 @@ function PostCard({ post, currentUserId, currentUserRole }: PostCardProps) {
         },
       );
       queryClient.invalidateQueries({ queryKey: ["posts"] });
+      queryClient.invalidateQueries({ queryKey: ["post", post.id] });
+      onDeleteSuccess?.(post.id);
     },
     onError: (error) => {
       window.alert(getErrorMessage(error, "Xóa bài viết thất bại."));
@@ -142,8 +152,8 @@ function PostCard({ post, currentUserId, currentUserRole }: PostCardProps) {
   });
 
   const reportMutation = useMutation({
-    mutationFn: ({ postId, reason }: { postId: number; reason: string }) =>
-      reportPost(postId, { reason }),
+    mutationFn: (postId: number) =>
+      reportPost(postId, { reason: DEFAULT_REPORT_REASON }),
     onSuccess: () => {
       window.alert(
         "Đã gửi báo cáo vi phạm thành công. Quản trị viên sẽ xem xét.",
@@ -169,18 +179,7 @@ function PostCard({ post, currentUserId, currentUserRole }: PostCardProps) {
   };
 
   const handleReport = () => {
-    const reason = window.prompt(
-      "Nhập lý do báo cáo bài viết này (tối đa 500 ký tự):",
-    );
-
-    if (!reason || reason.trim().length === 0) {
-      return;
-    }
-
-    reportMutation.mutate({
-      postId: post.id,
-      reason: reason.trim(),
-    });
+    reportMutation.mutate(post.id);
   };
 
   return (

@@ -2,6 +2,16 @@
 
 [⬅ Quay lại Master Plan](./Master_Plan_Tracker.md)
 
+## 27/04/2026 - Notification Flow cho Report Moderation
+
+- Cập nhật `src/pages/NotificationsPage.tsx` để hỗ trợ type thông báo `Report`:
+  - Bổ sung badge riêng cho `Report` với icon `flag`, màu đỏ để admin dễ nhận diện thông báo kiểm duyệt.
+  - Chuẩn hóa xử lý `notification.type` theo `toLowerCase()` để tránh lệch hoa/thường.
+  - Mở rộng click handler: với `Report` + `relatedEntityId` sẽ điều hướng sang `/posts/{relatedEntityId}`.
+- Kết quả:
+  - Khi admin bấm vào thông báo report, app mở đúng trang post detail để kiểm duyệt/xóa bài vi phạm.
+  - `npm run build` -> **Build succeeded**.
+
 ## 26/04/2026 - Admin Moderation UI Fix (Post/Comment)
 
 - Xác định nguyên nhân tài khoản `adminReal` không thấy nút xóa nội dung user khác:

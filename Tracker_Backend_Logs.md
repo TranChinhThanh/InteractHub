@@ -4,6 +4,35 @@
 
 ---
 
+## Cập nhật thực hiện mới nhất (27/04/2026) - Report -> Notification cho toàn bộ Admin + realtime
+
+### Nguyên nhân và mục tiêu
+
+- [x] Flow cũ của `ReportsService` chỉ lưu `PostReport`, chưa gửi thông báo cho Admin nên thiếu bước moderation theo yêu cầu nghiệp vụ.
+- [x] Mục tiêu: user báo cáo post -> tất cả role `Admin` nhận notification có `RelatedEntityId = postId` để click mở đúng bài viết và xử lý.
+
+### Việc đã thực thi
+
+- [x] Cập nhật `Backend/Services/ReportsService.cs`:
+  - Inject thêm `INotificationRepository`, `IHubContext<NotificationHub>`, `UserManager<ApplicationUser>`.
+  - Sau khi tạo report thành công, lấy danh sách toàn bộ admin bằng `GetUsersInRoleAsync(AppRoles.Admin)`.
+  - Tạo notification type `Report` cho từng admin:
+    - `Type = "Report"`
+    - `RelatedEntityId = postId`
+    - `Content` chuẩn hóa và giới hạn độ dài (`max 255`) để an toàn với schema hiện tại.
+  - Lưu notifications và phát sự kiện realtime `ReceiveNotification` cho từng admin qua SignalR.
+  - Bổ sung validate `Reason` sau khi trim (không cho phép chuỗi rỗng).
+
+### Kết quả xác minh
+
+- [x] Build backend pass:
+  - `dotnet build Backend/InteractHub.Api.csproj -p:UseAppHost=false -p:OutputPath=Backend/bin/tmpverify12/` -> **Build succeeded**.
+- [x] Runtime smoke test pass:
+  - User `alice` gọi `POST /api/reports/post/{postId}` thành công.
+  - `adminReal` nhận được notification type `Report` có `relatedEntityId` đúng `postId` đã báo cáo.
+
+---
+
 ## Cập nhật thực hiện mới nhất (26/04/2026) - Fix fallback quyền Admin khi xóa Post (token thiếu role claim)
 
 ### Nguyên nhân xác định
