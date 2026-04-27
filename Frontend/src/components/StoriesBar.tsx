@@ -8,6 +8,8 @@ import {
   getActiveStories,
 } from "../services/storyService";
 import type { ApiResponse, CreateStoryDto, StoryResponseDto } from "../types";
+import { notifyError } from "../utils/notify";
+import { useDialog } from "../contexts/DialogContext";
 
 const getErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (isAxiosError<ApiResponse<unknown>>(error)) {
@@ -43,6 +45,7 @@ const formatStoryDate = (createdAt: string): string => {
 
 function StoriesBar() {
   const { user } = useAuth();
+  const { confirm, prompt } = useDialog();
   const queryClient = useQueryClient();
   const [activeStory, setActiveStory] = useState<StoryResponseDto | null>(null);
 
@@ -63,7 +66,7 @@ function StoriesBar() {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
     },
     onError: (mutationError) => {
-      window.alert(getErrorMessage(mutationError, "Tạo tin thất bại."));
+      notifyError(getErrorMessage(mutationError, "Tạo tin thất bại."));
     },
   });
 
@@ -74,32 +77,41 @@ function StoriesBar() {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
     },
     onError: (mutationError) => {
-      window.alert(getErrorMessage(mutationError, "Xóa tin thất bại."));
+      notifyError(getErrorMessage(mutationError, "Xóa tin thất bại."));
     },
   });
 
-  const handleCreateStory = () => {
-    const inputValue = window.prompt("Nhập nội dung tin (tối đa 24h):");
+  const handleCreateStory = async () => {
+    const content = await prompt({
+      title: "Tạo tin mới",
+      message: "Nhập nội dung tin (tối đa 24h):",
+      placeholder: "Bạn muốn chia sẻ điều gì?",
+      confirmText: "Đăng tin",
+      cancelText: "Hủy",
+      tone: "info",
+      requireNonEmpty: true,
+      maxLength: 500,
+    });
 
-    if (!inputValue) {
-      return;
-    }
-
-    const content = inputValue.trim();
-
-    if (content.length === 0) {
+    if (content === null) {
       return;
     }
 
     createStoryMutation.mutate({ content });
   };
 
-  const handleDeleteStory = () => {
+  const handleDeleteStory = async () => {
     if (!activeStory) {
       return;
     }
 
-    const confirmed = window.confirm("Bạn có chắc muốn xóa tin này?");
+    const confirmed = await confirm({
+      title: "Xóa tin",
+      message: "Bạn có chắc muốn xóa tin này?",
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;

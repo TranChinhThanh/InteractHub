@@ -2,12 +2,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isAxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useDialog } from "../contexts/DialogContext";
 import {
   deleteAllNotifications,
   getNotifications,
   markAsRead,
 } from "../services/notificationService";
 import type { ApiResponse, NotificationResponseDto } from "../types";
+import { notifyError } from "../utils/notify";
 
 const getErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (isAxiosError<ApiResponse<unknown>>(error)) {
@@ -156,6 +158,7 @@ const getTypeBadge = (
 function NotificationsPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { confirm } = useDialog();
   const queryClient = useQueryClient();
 
   const {
@@ -175,7 +178,7 @@ function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
     onError: (mutationError) => {
-      window.alert(
+      notifyError(
         getErrorMessage(mutationError, "Đánh dấu thông báo đã đọc thất bại."),
       );
     },
@@ -189,7 +192,7 @@ function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
     onError: (mutationError) => {
-      window.alert(
+      notifyError(
         getErrorMessage(
           mutationError,
           "Đánh dấu tất cả thông báo đã đọc thất bại.",
@@ -204,7 +207,7 @@ function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     },
     onError: (mutationError) => {
-      window.alert(
+      notifyError(
         getErrorMessage(mutationError, "Xóa tất cả thông báo thất bại."),
       );
     },
@@ -228,14 +231,19 @@ function NotificationsPage() {
     markAllAsReadMutation.mutate(unreadNotificationIds);
   };
 
-  const handleDeleteAllNotifications = () => {
+  const handleDeleteAllNotifications = async () => {
     if (!hasNotifications || isBulkActionPending) {
       return;
     }
 
-    const shouldDeleteAll = window.confirm(
-      "Bạn có chắc muốn xóa toàn bộ thông báo?",
-    );
+    const shouldDeleteAll = await confirm({
+      title: "Xóa toàn bộ thông báo",
+      message: "Bạn có chắc muốn xóa toàn bộ thông báo?",
+      confirmText: "Xóa tất cả",
+      cancelText: "Hủy",
+      tone: "warning",
+    });
+
     if (!shouldDeleteAll) {
       return;
     }

@@ -21,6 +21,7 @@ import {
 import { getPostsByUser } from "../services/postService";
 import { getUserProfile, updateProfile } from "../services/userService";
 import type { ApiResponse, PostResponseDto, UpdateProfileDto } from "../types";
+import { notifyError } from "../utils/notify";
 
 interface ProfileFormValues {
   bio: string;
@@ -148,7 +149,7 @@ function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
     onError: (mutationError) => {
-      window.alert(getErrorMessage(mutationError, "Cập nhật hồ sơ thất bại."));
+      notifyError(getErrorMessage(mutationError, "Cập nhật hồ sơ thất bại."));
     },
   });
 
@@ -160,7 +161,7 @@ function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ["followers", user?.id] });
     },
     onError: (mutationError) => {
-      window.alert(getErrorMessage(mutationError, "Theo dõi thất bại."));
+      notifyError(getErrorMessage(mutationError, "Theo dõi thất bại."));
     },
   });
 
@@ -172,7 +173,7 @@ function ProfilePage() {
       queryClient.invalidateQueries({ queryKey: ["followers", user?.id] });
     },
     onError: (mutationError) => {
-      window.alert(getErrorMessage(mutationError, "Hủy theo dõi thất bại."));
+      notifyError(getErrorMessage(mutationError, "Hủy theo dõi thất bại."));
     },
   });
 

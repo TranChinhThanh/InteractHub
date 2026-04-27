@@ -7,6 +7,7 @@ import {
   getCommentsByPostId,
 } from "../services/commentService";
 import type { ApiResponse } from "../types";
+import { notifyError } from "../utils/notify";
 
 interface CommentSectionProps {
   postId: number;
@@ -84,7 +85,7 @@ function CommentSection({
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
     onError: (error) => {
-      window.alert(getErrorMessage(error, "Tạo bình luận thất bại."));
+      notifyError(getErrorMessage(error, "Tạo bình luận thất bại."));
     },
   });
 
@@ -95,7 +96,7 @@ function CommentSection({
       queryClient.invalidateQueries({ queryKey: ["posts"] });
     },
     onError: (error) => {
-      window.alert(getErrorMessage(error, "Xóa bình luận thất bại."));
+      notifyError(getErrorMessage(error, "Xóa bình luận thất bại."));
     },
   });
 

@@ -6,6 +6,7 @@ import FileInput from "./common/FileInput";
 import { useAuth } from "../contexts/AuthContext";
 import { createPost } from "../services/postService";
 import type { ApiResponse } from "../types";
+import { notifySuccess } from "../utils/notify";
 
 interface CreatePostFormValues {
   content: string;
@@ -58,7 +59,7 @@ function CreatePostForm() {
   const mutation = useMutation({
     mutationFn: (formData: FormData) => createPost(formData),
     onSuccess: () => {
-      window.alert("Đăng bài thành công!");
+      notifySuccess("Đăng bài thành công!");
       reset({
         content: "",
         image: undefined,

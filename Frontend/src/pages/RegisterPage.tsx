@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import TextInput from "../components/common/TextInput";
 import { register as registerUser } from "../services/authService";
 import type { ApiResponse, RegisterRequestDto } from "../types";
+import { notifySuccess } from "../utils/notify";
 
 interface RegisterFormValues {
   fullName: string;
@@ -107,7 +108,7 @@ function RegisterPage() {
         return;
       }
 
-      window.alert("Đăng ký thành công! Vui lòng đăng nhập.");
+      notifySuccess("Đăng ký thành công! Vui lòng đăng nhập.");
       navigate("/login");
     } catch (error: unknown) {
       if (isAxiosError(error)) {

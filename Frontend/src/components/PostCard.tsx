@@ -8,9 +8,11 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import CommentSection from "./CommentSection";
 import type { ApiResponse, PostResponseDto } from "../types";
+import { useDialog } from "../contexts/DialogContext";
 import { togglePostLike } from "../services/likeService";
 import { deletePost } from "../services/postService";
 import { reportPost } from "../services/reportService";
+import { notifyError, notifySuccess, notifyWarning } from "../utils/notify";
 
 interface PostCardProps {
   post: PostResponseDto;
@@ -78,6 +80,7 @@ function PostCard({
   onDeleteSuccess,
 }: PostCardProps) {
   const queryClient = useQueryClient();
+  const { confirm } = useDialog();
   const [showComments, setShowComments] = useState(false);
   const initials = post.userName.trim().charAt(0).toUpperCase() || "U";
   const isAdmin = currentUserRole === "Admin";
@@ -87,7 +90,7 @@ function PostCard({
   const deleteMutation = useMutation({
     mutationFn: (postId: number) => deletePost(postId),
     onSuccess: () => {
-      window.alert("Đã xóa");
+      notifySuccess("Đã xóa bài viết.");
       queryClient.setQueriesData<InfiniteData<PostResponseDto[], number>>(
         { queryKey: ["posts"] },
         (oldData) => {
@@ -108,7 +111,7 @@ function PostCard({
       onDeleteSuccess?.(post.id);
     },
     onError: (error) => {
-      window.alert(getErrorMessage(error, "Xóa bài viết thất bại."));
+      notifyError(getErrorMessage(error, "Xóa bài viết thất bại."));
     },
   });
 
@@ -144,7 +147,7 @@ function PostCard({
     },
     onError: (error, _variables, context) => {
       queryClient.setQueryData(["posts"], context?.previousPosts);
-      window.alert(getErrorMessage(error, "Thả tim thất bại."));
+      notifyError(getErrorMessage(error, "Thả tim thất bại."));
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["posts"] });
@@ -155,17 +158,24 @@ function PostCard({
     mutationFn: (postId: number) =>
       reportPost(postId, { reason: DEFAULT_REPORT_REASON }),
     onSuccess: () => {
-      window.alert(
+      notifyWarning(
         "Đã gửi báo cáo vi phạm thành công. Quản trị viên sẽ xem xét.",
       );
     },
     onError: (error) => {
-      window.alert(getErrorMessage(error, "Gửi báo cáo thất bại."));
+      notifyError(getErrorMessage(error, "Gửi báo cáo thất bại."));
     },
   });
 
-  const handleDelete = () => {
-    const confirmed = window.confirm("Bạn có chắc muốn xóa bài viết này?");
+  const handleDelete = async () => {
+    const confirmed = await confirm({
+      title: "Xóa bài viết",
+      message:
+        "Bạn có chắc muốn xóa bài viết này? Hành động này không thể hoàn tác.",
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { HubConnectionBuilder } from "@microsoft/signalr";
 import { useQueryClient } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import { useAuth } from "../contexts/AuthContext";
+import { notifyInfo } from "../utils/notify";
 
 function GlobalNotificationListener() {
   const { token } = useAuth();
@@ -23,7 +23,7 @@ function GlobalNotificationListener() {
       .build();
 
     connection.on("ReceiveNotification", () => {
-      toast("Bạn có thông báo mới!", { icon: "🔔" });
+      notifyInfo("Bạn có thông báo mới!");
       queryClient.invalidateQueries({ queryKey: ["notifications"] });
     });
 
