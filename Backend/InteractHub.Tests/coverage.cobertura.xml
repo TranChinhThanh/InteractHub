@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<coverage line-rate="1" branch-rate="0.5" version="1.9" timestamp="1776644866" lines-covered="45" lines-valid="45" branches-covered="3" branches-valid="6">
+<coverage line-rate="1" branch-rate="0.5" version="1.9" timestamp="1777356412" lines-covered="45" lines-valid="45" branches-covered="3" branches-valid="6">
   <sources>
     <source>C:\Users\GIGABYTE\Desktop\DoAnCShartp\InteractHub\Backend\Services\</source>
   </sources>
