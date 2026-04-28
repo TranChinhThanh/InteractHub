@@ -128,8 +128,17 @@ function RegisterPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-96 rounded-lg bg-white p-8 shadow-md">
+    <div
+      className="flex min-h-screen items-center justify-center px-4 bg-cover bg-center"
+      style={{
+        backgroundImage:
+          "url('/HD-wallpaper-social-networks-blue-background-social-networks-icons-blue-light-globe-global-networks-social-networks-blue-background-social-networks-concepts.jpg')",
+      }}
+    >
+      <div
+        className="w-full max-w-96 rounded-lg p-8 shadow-md"
+        style={{ backgroundColor: "rgba(255,255,255,0.92)" }}
+      >
         <h1 className="mb-6 text-center text-2xl font-semibold text-gray-800">
           Đăng ký tài khoản InteractHub
         </h1>
